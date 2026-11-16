@@ -1,0 +1,8 @@
+# Zips originais dos pacotes de modelos (o jogo usa só o que está em assets/)
+baixados/
+
+# Executável do túnel Cloudflare (53 MB) — baixar de novo em github.com/cloudflare/cloudflared
+cloudflared/
+
+# Foto pessoal usada no rosto da classe Victor Gomes; sem ela o jogo desenha um rosto simples
+victor.jpg

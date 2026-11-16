@@ -1,0 +1,2240 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>Fonterector The Game</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:system-ui,sans-serif;color:#fff;user-select:none}
+  canvas{display:block}
+  #hud{position:fixed;inset:0;pointer-events:none}
+  body.fora #hud{display:none}
+  #mira{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #0009;transition:transform .12s,box-shadow .12s}
+  #mira.hit{transform:scale(2.4);box-shadow:0 0 0 2px #ef4444}
+  #mira.cabeca{transform:scale(3);box-shadow:0 0 0 2px #facc15}
+  #luneta{position:absolute;inset:0;opacity:0;background:radial-gradient(circle at center,transparent 0,transparent 30vmin,#000 30.6vmin)}
+  #luneta::before,#luneta::after{content:"";position:absolute;background:#000}
+  #luneta::before{left:0;right:0;top:50%;height:1px}
+  #luneta::after{top:0;bottom:0;left:50%;width:1px}
+  #corte{position:absolute;left:50%;top:50%;width:90vmin;height:22vmin;margin:-11vmin 0 0 -45vmin;opacity:0;
+    background:radial-gradient(ellipse 50% 100% at 50% 100%,transparent 62%,#fff 70%,#bfe9ff 78%,transparent 86%)}
+  #trava{position:absolute;display:none;width:54px;height:54px;margin:-27px 0 0 -27px;border:2px solid #f43f5e;border-radius:6px;
+    box-shadow:0 0 12px #f43f5e;transform:rotate(45deg);animation:piscar .35s ease-in-out infinite alternate}
+  .num{position:absolute;top:46%;font:800 20px system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000;animation:sobeNum .6s ease-out forwards}
+  .num.cab{color:#facc15;font-size:26px}
+  @keyframes sobeNum{from{transform:translateY(0);opacity:1}to{transform:translateY(-46px);opacity:0}}
+  #vida{position:absolute;left:20px;bottom:20px;width:240px;height:16px;background:#0009;border-radius:3px;overflow:hidden}
+  #vida i{display:block;height:100%;width:100%;background:#4ade80}
+  #municao{position:absolute;right:22px;bottom:16px;text-align:right;font:800 30px system-ui,sans-serif;text-shadow:0 2px 5px #000}
+  #municao small{display:block;font-size:13px;letter-spacing:.2em;opacity:.85}
+  #placar{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:700;text-shadow:0 1px 4px #000;white-space:nowrap}
+  #feed{position:absolute;top:14px;right:16px;text-align:right;font-size:14px;font-weight:600;text-shadow:0 1px 3px #000}
+  #aviso{position:absolute;top:34%;left:0;right:0;text-align:center;font-size:28px;font-weight:800;text-shadow:0 2px 8px #000;white-space:pre-line}
+  #dano{position:absolute;inset:0;background:radial-gradient(transparent 45%,#f00c);opacity:0;transition:opacity .35s}
+
+  .botao{padding:14px 34px;font:800 clamp(15px,2vw,22px) system-ui,sans-serif;letter-spacing:.2em;color:#fff;
+    background:#b91c1c;border:2px solid #fecaca;border-radius:4px;cursor:pointer;box-shadow:0 0 30px #ef4444aa}
+  .botao:hover{background:#dc2626}
+
+  /* ── tela de título ── */
+  /* classes: .vai (abertura rodando) → .revela (fundo aparece) → .pronto (estado final) */
+  #titulo{position:fixed;inset:0;z-index:2;overflow:hidden;cursor:pointer;
+    background:radial-gradient(ellipse at 50% 55%,#0000 30%,#000 95%)}   /* a cena 3D já é preta: só escurece as bordas */
+  #titulo.revela{background:radial-gradient(ellipse at 50% 45%,#3a060022 0%,#1a0202b0 55%,#000 100%)}
+  #titulo.some{opacity:0;pointer-events:none;transition:opacity .6s}
+  #titulo>*{position:absolute}
+  #brasas,#flash{inset:0}
+  #brasas{width:100%;height:100%}
+  #flash{background:#fff;opacity:0;pointer-events:none;z-index:3}
+  #titulo .barra{left:0;right:0;height:0;background:#000;z-index:4;transition:height 1.2s}
+  #titulo .barra.cima{top:0} #titulo .barra.baixo{bottom:0}
+  #titulo.vai .barra{height:9vh}
+  #semSom{left:0;right:0;bottom:11vh;z-index:4;text-align:center;font-size:12px;letter-spacing:.25em;color:#fecaca;
+    animation:piscar 1.1s ease-in-out infinite alternate}
+  #semSom[hidden]{display:none}
+  #titulo .raios{left:50%;top:45%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;opacity:0;transition:opacity 2s;mix-blend-mode:screen;
+    background:repeating-conic-gradient(#ff7a1a2e 0deg 3deg,transparent 3deg 13deg);
+    -webkit-mask:radial-gradient(circle,#000 0%,transparent 48%);mask:radial-gradient(circle,#000 0%,transparent 48%);
+    animation:girar 60s linear infinite}
+  #titulo.pronto .raios{opacity:1}
+  #titulo.pronto::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:radial-gradient(transparent 50%,#b00000);animation:pulsoV 1.1s ease-out infinite}
+  #titulo .conteudo{inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px 16px 26vh;text-align:center}
+  #titulo .pre{position:absolute;top:80%;left:0;right:0;transform:translateY(-50%);font:600 clamp(14px,2.4vw,28px) Georgia,serif;
+    letter-spacing:.35em;color:#e5e5e5;opacity:0}
+  #titulo.vai:not(.pronto) .pre.a{animation:frase 2.1s .3s both}
+  #titulo.vai:not(.pronto) .pre.b{animation:frase 1.9s 2.5s both}
+  #logo{position:relative;margin:0;font:900 clamp(40px,13vw,170px)/.9 Impact,'Arial Black',sans-serif;letter-spacing:.02em;white-space:nowrap;
+    filter:drop-shadow(0 0 22px #ef4444) drop-shadow(0 6px 0 #000)}
+  #logo span{display:inline-block;opacity:0;background:linear-gradient(#fff7d6 10%,#fbbf24 45%,#dc2626 80%,#450a0a);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  #titulo.vai:not(.pronto) #logo span{animation:letra .45s calc(4.5s + var(--i)*.13s) cubic-bezier(.2,1.5,.4,1) both}
+  #titulo.pronto #logo span{opacity:1}
+  #titulo.pronto #logo{animation:brasa 1.1s ease-in-out infinite alternate, falha 5s steps(1) infinite}
+  #logo::before,#logo::after{content:"FONTERECTOR";position:absolute;left:0;top:0;opacity:0;mix-blend-mode:screen;pointer-events:none}
+  #logo::before{color:#0ff} #logo::after{color:#f03}
+  #titulo.pronto #logo::before{animation:fatiaA 5s steps(1) infinite}
+  #titulo.pronto #logo::after{animation:fatiaB 5s steps(1) infinite}
+  #titulo h2{margin:0;font:900 clamp(18px,4.2vw,56px)/1 Impact,'Arial Black',sans-serif;letter-spacing:.9em;margin-right:-.9em;
+    color:#fff;text-shadow:0 0 18px #ef4444,0 3px 0 #000;opacity:0}
+  #titulo.vai:not(.pronto) h2{animation:jogo .7s 6.15s both}
+  #titulo.pronto h2{opacity:1}
+  #titulo .ato{margin-top:16px;font:700 clamp(14px,2.6vw,30px) Georgia,serif;letter-spacing:.3em;margin-right:-.3em;
+    color:#fecaca;text-shadow:0 0 16px #dc2626,0 2px 0 #000}
+  #titulo .botao{margin-top:28px}
+  #titulo .rodape{margin-top:14px;font-size:12px;letter-spacing:.2em;color:#fecaca}
+  #titulo .ato,#titulo .botao,#titulo .rodape{opacity:0;transition:opacity .9s}
+  #titulo.pronto .ato,#titulo.pronto .botao,#titulo.pronto .rodape{opacity:1}
+  #titulo.pronto .botao{transition-delay:.4s;animation:pulsar .55s ease-in-out infinite alternate}
+  #titulo.pronto .rodape{transition-delay:.9s}
+  @keyframes piscar{from{opacity:.45}to{opacity:1}}
+  @keyframes girar{to{transform:rotate(360deg)}}
+  @keyframes pulsoV{0%{opacity:.75}35%{opacity:.25}100%{opacity:.2}}
+  @keyframes frase{0%{opacity:0;letter-spacing:.2em;filter:blur(6px)}25%,70%{opacity:1;filter:none}100%{opacity:0;letter-spacing:.5em}}
+  @keyframes letra{0%{opacity:0;transform:translateY(-120vh) scale(3) rotate(-25deg)}70%{opacity:1;transform:translateY(0) scale(1.25)}100%{opacity:1;transform:none}}
+  @keyframes jogo{from{opacity:0;letter-spacing:3em;filter:blur(8px)}to{opacity:1;letter-spacing:.9em}}
+  @keyframes brasa{from{filter:drop-shadow(0 0 14px #ef4444) drop-shadow(0 6px 0 #000)}to{filter:drop-shadow(0 0 60px #f97316) drop-shadow(0 6px 0 #000)}}
+  @keyframes falha{0%,91%,100%{transform:none}92%{transform:skewX(-14deg) translateX(-10px)}94%{transform:skewX(9deg) translateX(8px) scaleY(1.06)}96%{transform:translateX(-4px)}}
+  @keyframes fatiaA{0%,91%,97%,100%{opacity:0}92%{opacity:.9;clip-path:inset(15% 0 55% 0);transform:translateX(-14px)}94%{opacity:.9;clip-path:inset(62% 0 8% 0);transform:translateX(12px)}}
+  @keyframes fatiaB{0%,91%,97%,100%{opacity:0}92%{opacity:.9;clip-path:inset(55% 0 20% 0);transform:translateX(14px)}95%{opacity:.9;clip-path:inset(5% 0 70% 0);transform:translateX(-10px)}}
+  @keyframes pulsar{to{transform:scale(1.07);box-shadow:0 0 55px #ef4444}}
+  @media (prefers-reduced-motion:reduce){#titulo,#titulo *,#titulo::after,#logo::before,#logo::after{animation:none!important}}
+
+  /* ── loadout ── */
+  #loadout{position:fixed;inset:0;display:grid;grid-template-columns:minmax(220px,320px) 1fr minmax(220px,320px);grid-template-rows:1fr auto;
+    gap:10px 14px;padding:18px;background:linear-gradient(90deg,#000d 0%,#0000 38%,#0000 62%,#000d 100%)}
+  #loadout[hidden]{display:none}
+  #loadout section{align-self:center;max-height:100%;overflow:auto}
+  #loadout h4{margin:12px 0 6px;font:800 13px system-ui,sans-serif;letter-spacing:.3em;color:#fca5a5}
+  .op{display:block;width:100%;box-sizing:border-box;text-align:left;margin:0 0 6px;padding:9px 12px;background:#111c;
+    border:1px solid #fff3;border-left:4px solid #fff3;color:#fff;cursor:pointer;font:inherit;border-radius:3px}
+  .op b{display:block;font-size:15px;letter-spacing:.06em}
+  .op span{display:block;font-size:12px;opacity:.75}
+  .op:hover{background:#262626cc}
+  .op.sel{border-color:#fbbf24;background:#3b2a05cc}
+  #loadout .pe{grid-column:1/-1;text-align:center}
+  /* ── painéis centrais: escolher sala e menu de pausa ── */
+  .painel{position:fixed;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    padding:16px;background:#000b;text-align:center}
+  .painel[hidden]{display:none}
+  .painel h3{margin:0 0 8px;font:800 18px system-ui,sans-serif;letter-spacing:.5em;margin-right:-.5em;color:#fca5a5}
+  .painel .op{width:min(360px,90vw);margin:0}
+  .painel .botao{margin:8px 0}
+  .painel .dica{font-size:12px;opacity:.85;min-height:16px}
+  .painel .ou{font-size:12px;opacity:.6;margin-top:6px}
+  .painel .linha{display:flex;gap:6px;width:min(360px,90vw)}
+  .painel .linha .op{width:auto;text-align:center;font-weight:700}
+  #codigoSala{flex:1;min-width:0;padding:9px 12px;background:#111c;border:1px solid #fff3;border-radius:3px;color:#fff;
+    font:700 16px system-ui,sans-serif;letter-spacing:.3em;text-transform:uppercase}
+  #menu .op{text-align:center;font-weight:700}
+  #loadout .dica{font-size:12px;opacity:.85;margin-top:10px;text-shadow:0 1px 3px #000}
+</style>
+</head>
+<body class="fora">
+<div id="titulo">
+  <canvas id="brasas"></canvas>
+  <div class="raios"></div>
+  <div class="conteudo">
+    <div class="pre a">EM UMA SALA SEM SAÍDA…</div>
+    <div class="pre b">SÓ UM VAI SOBRAR.</div>
+    <h1 id="logo"></h1>
+    <h2>THE GAME</h2>
+    <div class="ato">ATO 3 — VICTOR GOMES MORRE DE NOVO</div>
+    <button class="botao">▶ ENTRAR NA ARENA</button>
+    <div class="rodape">BASEADO EM FATOS QUE AINDA VÃO ACONTECER</div>
+  </div>
+  <div id="flash"></div>
+  <div class="barra cima"></div>
+  <div class="barra baixo"></div>
+  <div id="semSom" hidden>🔇 CLIQUE EM QUALQUER LUGAR PARA LIGAR O SOM</div>
+</div>
+<div id="loadout" hidden>
+  <section><h4>OPERADOR</h4><div id="lPers"></div></section>
+  <div></div>
+  <section><h4>PRIMÁRIA</h4><div id="lPrim"></div><h4>SECUNDÁRIA</h4><div id="lSec"></div></section>
+  <div class="pe">
+    <button id="jogar" class="botao">▶ ENTRAR EM COMBATE</button>
+    <div class="dica">WASD anda · Shift corre · Espaço pula · C agacha · Clique atira · Botão direito mira · R recarrega · 1 / 2 / Q troca de arma · L loadout · B / N bots · Esc menu<br>Emotes: T aceno · G passinho do Jamal · H senta<br>Victor Gomes: clique corta · Shift ou botão direito dá dash · Fonterector: o míssil segue quem estiver marcado na mira</div>
+  </div>
+</div>
+<div id="salas" class="painel" hidden>
+  <h3>ESCOLHA O MODO</h3>
+  <button class="op sel" data-modo="arcade"><b>Arcade</b><span>Todos contra todos. Primeiro a 10 abates vence.</span></button>
+  <button class="op" data-modo="ondas"><b>Defender o Fonterector</b><span>Juntos contra ondas de zumbis que atacam o Fonterector, no centro.</span></button>
+  <button id="criarSala" class="botao">CRIAR SALA</button>
+  <div class="ou">— ou entre numa sala que já existe —</div>
+  <div class="linha"><input id="codigoSala" maxlength="8" placeholder="CÓDIGO" autocomplete="off"><button id="entrarSala" class="op">ENTRAR</button></div>
+  <div id="salasMsg" class="dica"></div>
+</div>
+<div id="menu" class="painel" hidden>
+  <h3>PAUSA</h3>
+  <div id="menuSala" class="dica"></div>
+  <button class="op" data-a="voltar">▶ Continuar</button>
+  <button class="op" data-a="classe">Trocar de classe</button>
+  <button class="op" data-a="reiniciar">Reiniciar partida</button>
+  <button class="op" data-a="modo" id="bModo"></button>
+  <button class="op" data-a="link">Copiar link da sala</button>
+  <div class="dica">Emotes: T aceno · G passinho do Jamal · H senta (mexeu, parou)</div>
+</div>
+<div id="hud">
+  <div id="dano"></div>
+  <div id="luneta"></div>
+  <div id="corte"></div>
+  <div id="trava"></div>
+  <div id="mira"></div>
+  <div id="placar"></div>
+  <div id="feed"></div>
+  <div id="aviso"></div>
+  <div id="vida"><i></i></div>
+  <div id="municao"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- carregadores de modelo (mesma versão do three): .glb do cenário e .obj/.mtl das armas -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<script>
+// ───────── Ajustes ─────────
+const ARENA = 34;                       // meia-largura da sala
+const GRAV = 25, VEL = 5.5, PULO = 8.5; // ritmo "pé no chão"
+const META = 10;
+const RAIO = 0.4, ALTURA = 1.9, OLHO = 1.65;
+const CORES = [0x38bdf8, 0xfb7185, 0xfacc15, 0x4ade80, 0xc084fc, 0xfb923c];
+const V3 = THREE.Vector3;
+
+// Operadores: mesma altura, mesma anatomia e mesma caixa de acerto. Muda a grossura (esc),
+// os acessórios e os status. "arma" fixa a arma da classe; "dash" libera a investida.
+const PERSONAGENS = [
+  { nome: 'Brutus',       desc: 'Tanque: aguenta muito, anda devagar', vida: 150, vel: 0.85, esc: 1.22, pele: 0xd9a066, calca: 0x3b3b2f, det: 0x4b5320, extra: 'capacete' },
+  { nome: 'Recruta',      desc: 'Equilibrado em tudo',                 vida: 100, vel: 1,    esc: 1,    pele: 0xf1c27d, calca: 0x2f3e55, det: 0x7a4a21, extra: 'bone' },
+  { nome: 'Sombra',       desc: 'Batedora: rápida e frágil',           vida: 75,  vel: 1.18, esc: 0.86, pele: 0x8d5524, calca: 0x1f1f24, det: 0x18181b, extra: 'capuz' },
+  { nome: 'Victor Gomes', desc: 'Classe especial: katana e dash',      vida: 110, vel: 1.15, esc: 1,    pele: 0xc99a7c, calca: 0x2b2f3a, det: 0x1b1b1f, extra: 'victor', camisa: 0x7387c9, arma: 6, dash: true },
+  { nome: 'Zumbi',        desc: 'Só no modo Defender o Fonterector',   vida: 60,  vel: 0.6,  esc: 1,    pele: 0x7fa36b, calca: 0x3a3328, det: 0x2a241c, extra: 'zumbi', camisa: 0x55604a, oculto: true },
+  { nome: 'Fonterector',  desc: 'Robô. Mísseis teleguiados que explodem em área', vida: 140, vel: 0.9, esc: 1.25, pele: 0x9aa7b4, calca: 0x4a5563, det: 0xd4a017, extra: 'robo', camisa: 0x6b7a8c, arma: 8, trancado: true },
+];
+const SENHA_ROBO = '5656';      // fica no código da página: é trava de brincadeira, não segurança
+// slot 0 = primária, 1 = secundária. cad = s entre tiros · rec = s de recarga
+// hip/ads = espalhamento do 1º tiro (solto / mirando) · bloom = quanto abre a cada tiro seguido
+// alcance = até onde o dano é cheio · coice = quanto a mira sobe por tiro · tiro = [filtro Hz, duração s, grave Hz] do som
+const ARMAS = [
+  { nome: 'Fuzil',           desc: 'Automático, bom em tudo',    slot: 0, dano: 24, cad: 0.1,   pente: 30, rec: 1.9, hip: 0.016, ads: 0.002, bloom: 0.006, alcance: 35,  zoom: 50, auto: true,  balas: 1, coice: 0.014, emp: 0.6, mob: 1,    comp: 0.85, tiro: [1800, 0.14, 150] },
+  { nome: 'Submetralhadora', desc: 'Cospe bala, fraca de longe', slot: 0, dano: 16, cad: 0.065, pente: 32, rec: 1.5, hip: 0.02,  ads: 0.006, bloom: 0.005, alcance: 16,  zoom: 60, auto: true,  balas: 1, coice: 0.009, emp: 0.5, mob: 1.1,  comp: 0.6,  tiro: [2600, 0.09, 220] },
+  { nome: 'Escopeta',        desc: '8 chumbos, mata de perto',   slot: 0, dano: 12, cad: 0.8,   pente: 6,  rec: 2.4, hip: 0.05,  ads: 0.04,  bloom: 0,     alcance: 9,   zoom: 62, auto: false, balas: 8, coice: 0.07,  emp: 1.5, mob: 1,    comp: 0.95, tiro: [900, 0.3, 80] },
+  { nome: 'Sniper',          desc: 'Um tiro, quase uma morte',   slot: 0, dano: 95, cad: 1.2,   pente: 5,  rec: 2.8, hip: 0.06,  ads: 0,     bloom: 0,     alcance: 999, zoom: 20, auto: false, balas: 1, coice: 0.08,  emp: 2,   mob: 0.9,  comp: 1.25, tiro: [1100, 0.4, 70] },
+  { nome: 'Pistola',         desc: 'Leve, rápida de sacar',      slot: 1, dano: 26, cad: 0.16,  pente: 12, rec: 1.2, hip: 0.012, ads: 0.003, bloom: 0.008, alcance: 22,  zoom: 62, auto: false, balas: 1, coice: 0.022, emp: 0.6, mob: 1.1,  comp: 0.3,  tiro: [3000, 0.1, 260] },
+  { nome: 'Revólver',        desc: 'Pesado, só 6 balas',         slot: 1, dano: 52, cad: 0.45,  pente: 6,  rec: 2.0, hip: 0.014, ads: 0.002, bloom: 0.02,  alcance: 30,  zoom: 55, auto: false, balas: 1, coice: 0.06,  emp: 1.5, mob: 1.05, comp: 0.36, tiro: [1400, 0.22, 110] },
+  { nome: 'Katana',          desc: 'Corta de perto. Shift ou botão direito: dash', slot: 2, melee: true, alcance: 3.2, dano: 70, cad: 0.45, pente: Infinity, rec: 0, hip: 0, ads: 0, bloom: 0, zoom: 75, auto: true, balas: 0, coice: 0, emp: 4, mob: 1, comp: 1.1, som: 700 },
+  { nome: 'Garras',          desc: 'Ataque dos zumbis', slot: 3, melee: true, alcance: 1.5, dano: 14, cad: 0.9, pente: Infinity, rec: 0, hip: 0, ads: 0, bloom: 0, zoom: 75, auto: true, balas: 0, coice: 0, emp: 3, mob: 1, comp: 0, som: 150 },
+  { nome: 'Mísseis',         desc: 'Teleguiados: perseguem quem estiver na mira', slot: 2, missil: true, alcance: 999, dano: 85, cad: 0.9, pente: 4, rec: 2.8, hip: 0, ads: 0, bloom: 0, zoom: 62, auto: false, balas: 1, coice: 0.05, emp: 6, mob: 1, comp: 0.7, tiro: [600, 0.5, 90] },
+];
+
+// Regra de dano: cabeça vale 1,6x. Passou do alcance da arma, o dano cai aos poucos
+// até a metade (no dobro do alcance) — é isso que separa SMG e escopeta de fuzil e sniper.
+function aoAcertar(arma, distancia, naCabeca) {
+  const longe = Math.min(1, Math.max(0, (distancia - arma.alcance) / arma.alcance));
+  return { dano: arma.dano * (naCabeca ? 1.6 : 1) * (1 - 0.5 * longe), empurrao: arma.emp };
+}
+
+// ───────── Cena ─────────
+const $ = id => document.getElementById(id);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+document.body.prepend(renderer.domElement);
+const tela = renderer.domElement;
+const cena = new THREE.Scene();
+cena.background = new THREE.Color(0x9fb3c8);
+cena.fog = new THREE.Fog(0x9fb3c8, 35, 110);
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 200);
+camera.rotation.order = 'YXZ';
+// A arma em primeira pessoa mora numa cena à parte, desenhada por cima da principal:
+// assim ela nunca entra na parede e não estica quando o campo de visão muda (mirar, correr).
+renderer.autoClear = false;
+const cenaVM = new THREE.Scene();
+const camVM = new THREE.PerspectiveCamera(60, 1, 0.01, 10);
+cenaVM.add(new THREE.HemisphereLight(0xffffff, 0x778899, 1));
+const luzVM = new THREE.DirectionalLight(0xffffff, 0.9);       // luz de cima e de lado: dá volume à arma
+luzVM.position.set(-1, 2, 1.5);
+cenaVM.add(luzVM);
+const luzCeu = new THREE.HemisphereLight(0xffffff, 0x556677, 0.9);
+const sol = new THREE.DirectionalLight(0xffffff, 0.7);
+sol.position.set(10, 20, 6);
+const fogo = new THREE.PointLight(0xff4a1c, 0, 40);     // só acende na tela de título
+cena.add(luzCeu, sol, fogo);
+
+function ajustarTela() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = camVM.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  camVM.updateProjectionMatrix();
+}
+addEventListener('resize', ajustarTela);
+ajustarTela();
+
+const M = cor => new THREE.MeshLambertMaterial({ color: cor, flatShading: true });
+const cx = (w, h, d, mat, x, y, z) => {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  return m;
+};
+
+const chao = new THREE.Mesh(new THREE.PlaneGeometry(ARENA * 2, ARENA * 2), M(0x66785a));
+chao.rotation.x = -Math.PI / 2;
+cena.add(chao);
+const grade = new THREE.GridHelper(ARENA * 2, 22, 0x4d5c44, 0x4d5c44);
+grade.position.y = 0.01;
+cena.add(grade);
+
+// caixas = paredes + coberturas; cada uma guarda seu AABB pra colisão
+const caixas = [], solidos = [chao];
+function caixa(x, z, w, d, h, cor) {
+  const m = cx(w, h, d, M(cor), x, h / 2, z);
+  cena.add(m);
+  solidos.push(m);
+  caixas.push({ x0: x - w / 2, x1: x + w / 2, y0: 0, y1: h, z0: z - d / 2, z1: z + d / 2 });
+}
+// ───────── Fase: pátio industrial ─────────
+// Colisão é sempre caixa. As peças baixadas (Kenney City Kit Industrial, CC0) ganham a caixa
+// sozinhas, medida do próprio modelo depois de posicionado.
+const W = ARENA + 1;
+const CONCRETO = 0x7d8597, MADEIRA = 0x9c6b30, ACO = 0x5c677d;
+caixa(0, -W, W * 2 + 2, 2, 8, CONCRETO); caixa(0, W, W * 2 + 2, 2, 8, CONCRETO);
+caixa(-W, 0, 2, W * 2 + 2, 8, CONCRETO); caixa(W, 0, 2, W * 2 + 2, 8, CONCRETO);
+caixa(0, 0, 5, 5, 2.2, 0xb5651d);                                       // bloco central (base do Fonterector)
+caixa(-7, 0, 1.2, 4, 1.2, 0x8d7b68); caixa(7, 0, 1.2, 4, 1.2, 0x8d7b68);   // muretas em volta do centro
+caixa(0, -8, 4, 1.2, 1.2, 0x8d7b68); caixa(0, 8, 4, 1.2, 1.2, 0x8d7b68);
+function plataforma(x, z, lado) {            // plataforma de 1,5 m com escada de degraus de 0,3 m virada pro centro
+  caixa(x, z, 6, 7, 1.5, ACO);
+  caixa(x + lado * 2.8, z, 0.4, 7, 2.4, 0x495467);                      // parapeito do lado de fora
+  for (let i = 1; i <= 4; i++) caixa(x - lado * (2.7 + i * 0.6), z, 0.6, 3, 1.5 - i * 0.3, 0x495467);
+}
+plataforma(20, 0, 1); plataforma(-20, 0, -1);
+for (const [x, z, t] of [[-14, -12, 1.6], [-12.6, -12.4, 1.1], [14, 12, 1.6], [12.6, 12.4, 1.1], [-17, 7, 1.3], [17, -7, 1.3], [6, -19, 1.4], [-6, 19, 1.4]])
+  caixa(x, z, t, t, t, MADEIRA);                                        // caixotes
+
+const PECAS = [                              // [arquivo, x, z, escala, giro em quartos de volta]
+  ['building-a', -22, -22, 7, 0], ['building-l', 23, -21, 7, 0], ['building-r', -21, 23, 7, 2], ['building-e', 22, 22, 7, 2],
+  ['building-g', 0, -27, 7, 0], ['building-m', 0, 27, 7, 2],
+  ['shipping-container-a', -11, -6, 2, 0], ['shipping-container-b', -11, 7, 2, 1], ['shipping-container-c', 11, -7, 2, 1], ['shipping-container-a', 11, 6, 2, 0],
+  ['shipping-container-b', -4, -15, 2, 1], ['shipping-container-c', 4, 15, 2, 1],
+  ['detail-tank-large', -14, 15, 3, 0], ['detail-tank-large', 14, -15, 3, 2],
+  ['water-tower', -30, 10, 5, 0], ['chimney-large', 30, -10, 5, 0],
+];
+const gltf = THREE.GLTFLoader ? new THREE.GLTFLoader() : null;         // se o carregador não vier, a fase fica só com as caixas
+if (gltf) for (const arq of new Set(PECAS.map(p => p[0])))
+  gltf.load('assets/cenario/' + arq + '.glb', g => {
+    for (const [n, x, z, esc, giro] of PECAS) {
+      if (n !== arq) continue;
+      const m = g.scene.clone();
+      m.scale.setScalar(esc);
+      m.rotation.y = giro * Math.PI / 2;
+      m.position.set(x, 0, z);
+      cena.add(m);
+      m.updateMatrixWorld(true);
+      const b = new THREE.Box3().setFromObject(m);
+      caixas.push({ x0: b.min.x, x1: b.max.x, y0: 0, y1: b.max.y, z0: b.min.z, z1: b.max.z });
+    }
+  }, undefined, () => {});
+
+// Cabeça do Victor Gomes: a foto (arena-pvp/victor.jpg) é pintada num canvas que vira a
+// textura da cabeça inteira. A cabeça é uma esfera: a faixa da frente do canvas é o rosto,
+// o resto é pele e cabelo raspado. Sem a foto, desenha um rosto simples no mesmo canvas.
+const cvRosto = document.createElement('canvas');
+cvRosto.width = 512; cvRosto.height = 256;
+const texRosto = new THREE.CanvasTexture(cvRosto);
+const matCabecaVic = new THREE.MeshLambertMaterial({ map: texRosto });
+function pintarRosto(img) {
+  const g = cvRosto.getContext('2d');
+  g.fillStyle = '#c99a7c'; g.fillRect(0, 0, 512, 256);        // pele
+  g.fillStyle = '#2b211c';
+  g.fillRect(0, 0, 512, 44);                                  // cabelo raspado no topo
+  g.fillRect(262, 0, 250, 150);                               // e na parte de trás
+  if (img) g.drawImage(img, 22, 22, 212, 206);                // rosto: a frente da cabeça fica entre 4% e 46% da largura
+  else {
+    g.fillRect(84, 96, 22, 14); g.fillRect(150, 96, 22, 14);  // olhos
+    g.fillRect(78, 80, 34, 6); g.fillRect(144, 80, 34, 6);    // sobrancelhas
+    g.fillRect(98, 150, 60, 8); g.fillRect(114, 170, 28, 22); // bigode e cavanhaque
+  }
+  texRosto.needsUpdate = true;
+}
+pintarRosto(null);
+const fotoVic = new Image();
+fotoVic.onload = () => pintarRosto(fotoVic);
+fotoVic.src = 'victor.jpg';
+
+// ───────── Bonecos low-poly ─────────
+// Tudo caixa. A frente do boneco é -z. Peças que se mexem ficam em userData.
+function criarModeloCaixas(ci, cor) {
+  // Corpo humano low-poly (~1,98 m): cilindros facetados afunilados e cabeça de icosaedro.
+  // Juntas que animam: quadril, joelhos, tronco, cabeça, ombros e cotovelos.
+  const c = PERSONAGENS[ci], e = c.esc, vic = c.extra === 'victor';
+  const mCam = M(c.camisa || cor), mCalca = M(c.calca), mPele = M(c.pele), mDet = M(c.det), mEsc = M(0x241c18);
+  const cil = (rt, rb, h, mat, y, sz) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, 7), mat);
+    m.position.y = y; m.scale.z = sz || 1;
+    return m;
+  };
+  const bola = (r, mat, x, y, z, sx, sy, sz) => {
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), mat);
+    m.position.set(x, y, z); m.scale.set(sx || 1, sy || 1, sz || 1);
+    return m;
+  };
+  const grupo = (x, y, z, ...filhos) => {
+    const g = new THREE.Group();
+    g.position.set(x, y, z);
+    filhos.forEach(f => g.add(f));
+    return g;
+  };
+  const raiz = new THREE.Group(), corpo = new THREE.Group();   // corpo desce inteiro ao agachar/quicar
+  raiz.add(corpo);
+
+  // pernas: coxa → joelho → canela + pé
+  const joelhos = [];
+  const pernas = [-1, 1].map(s => {
+    const j = grupo(0, -0.5, 0, cil(0.07 * e, 0.05 * e, 0.42, mCalca, -0.21),
+      cx(0.11 * e, 0.09, 0.27, mDet, 0, -0.43, -0.06), cx(0.115 * e, 0.03, 0.28, vic ? M(0xe5e5e5) : mEsc, 0, -0.485, -0.06));   // pé + sola
+    if (c.extra === 'capacete') j.add(cx(0.13 * e, 0.12, 0.06, mDet, 0, -0.02, -0.07));                                        // joelheira
+    joelhos.push(j);
+    const p = grupo(s * 0.105 * e, 0.97, 0, cil(0.095 * e, 0.072 * e, 0.5, mCalca, -0.25), j);
+    corpo.add(p);
+    return p;
+  });
+
+  // tronco: bacia, cinto, barriga, peito (ombros largos → cintura fina), pescoço
+  const tronco = grupo(0, 1, 0,
+    cil(0.175 * e, 0.15 * e, 0.16, mCalca, 0.02, 0.65),
+    cil(0.182 * e, 0.182 * e, 0.05, vic ? M(cor) : mDet, 0.1, 0.66),
+    cx(0.06, 0.05, 0.03, M(0xd4a017), 0, 0.1, -0.12 * e),                 // fivela
+    cil(0.17 * e, 0.175 * e, 0.2, mCam, 0.19, 0.62),
+    cil(0.25 * e, 0.17 * e, 0.36, mCam, 0.46, 0.58),
+    cil(0.05, 0.058, 0.1, mPele, 0.68));
+  corpo.add(tronco);
+
+  // cabeça (gira com a mira): crânio, olhos, nariz, orelhas
+  // No Victor a cabeça é mais lisa e leva a foto como textura (matCabecaVic), meio cabeçuda de propósito
+  const cranio = vic ? new THREE.Mesh(new THREE.IcosahedronGeometry(0.135, 2), matCabecaVic) : bola(0.135, mPele, 0, 0.13, 0, 1, 1.12, 1.05);
+  if (vic) { cranio.position.y = 0.14; cranio.scale.set(1.12, 1.25, 1.12); }
+  const cabeca = grupo(0, 0.72, 0,
+    cranio,
+    cx(0.04, 0.035, 0.02, mEsc, -0.055, 0.15, -0.132), cx(0.04, 0.035, 0.02, mEsc, 0.055, 0.15, -0.132),
+    cx(0.035, 0.05, 0.04, mPele, 0, 0.11, -0.145),
+    cx(0.03, 0.06, 0.04, mPele, -0.135, 0.13, 0), cx(0.03, 0.06, 0.04, mPele, 0.135, 0.13, 0));
+  tronco.add(cabeca);
+
+  if (c.extra === 'capacete') {
+    cabeca.add(bola(0.16, mDet, 0, 0.17, 0, 1, 0.8, 1.08), cil(0.178, 0.178, 0.03, mDet, 0.12));           // capacete + aba
+    tronco.add(bola(0.11 * e, mDet, -0.3 * e, 0.61, 0, 1.2, 0.7, 1.2), bola(0.11 * e, mDet, 0.3 * e, 0.61, 0, 1.2, 0.7, 1.2));   // ombreiras
+    tronco.add(cil(0.265 * e, 0.19 * e, 0.3, mDet, 0.47, 0.62));                                           // colete
+    tronco.add(cx(0.1, 0.09, 0.05, mEsc, -0.1, 0.4, -0.16 * e), cx(0.1, 0.09, 0.05, mEsc, 0.1, 0.4, -0.16 * e));   // bolsos
+  } else if (c.extra === 'bone') {
+    cabeca.add(bola(0.142, mDet, 0, 0.17, 0, 1, 0.75, 1.05), cx(0.2, 0.025, 0.13, mDet, 0, 0.18, -0.19));  // boné + aba
+    tronco.add(cx(0.28 * e, 0.34, 0.13, mDet, 0, 0.45, 0.2));                                              // mochila
+    tronco.add(cx(0.08, 0.08, 0.05, mDet, -0.1, 0.13, -0.125), cx(0.08, 0.08, 0.05, mDet, 0.1, 0.13, -0.125));   // bolsos no cinto
+    tronco.add(cx(0.05, 0.36, 0.03, mDet, -0.13, 0.46, -0.145), cx(0.05, 0.36, 0.03, mDet, 0.13, 0.46, -0.145)); // alças
+  } else if (c.extra === 'capuz') {
+    cabeca.add(bola(0.165, mDet, 0, 0.14, 0.045, 1, 1.12, 1.05));                                           // capuz
+    cabeca.add(cx(0.2, 0.045, 0.02, new THREE.MeshBasicMaterial({ color: 0x67e8f9 }), 0, 0.15, -0.146));    // visor
+    tronco.add(cil(0.1, 0.13, 0.09, mDet, 0.67), cx(0.07, 0.3, 0.03, mDet, 0.1, 0.5, 0.15));                // cachecol + ponta
+  } else if (c.extra === 'robo') {                                                                          // Fonterector
+    const mLuz = new THREE.MeshBasicMaterial({ color: 0x67e8f9 }), mNuc = new THREE.MeshBasicMaterial({ color: 0xff8a1f });
+    cabeca.children.slice().forEach(m => cabeca.remove(m));                                                 // sem cabeça humana
+    cabeca.add(cx(0.3, 0.26, 0.3, mCam, 0, 0.14, 0), cx(0.26, 0.07, 0.02, mLuz, 0, 0.16, -0.155));          // cabeça-caixa + visor
+    cabeca.add(cx(0.03, 0.2, 0.03, mDet, 0.1, 0.36, 0), cx(0.06, 0.06, 0.06, mNuc, 0.1, 0.48, 0));          // antena
+    tronco.add(cx(0.56 * e, 0.4, 0.34 * e, mCam, 0, 0.46, 0), cx(0.5 * e, 0.06, 0.36 * e, mDet, 0, 0.3, 0));   // peitoral blindado + friso
+    tronco.add(cx(0.16, 0.16, 0.03, mNuc, 0, 0.48, -0.18 * e));                                             // núcleo aceso
+    [-1, 1].forEach(s => {                                                                                  // casulos de míssil nos ombros
+      tronco.add(cx(0.26, 0.24, 0.42, mDet, s * 0.37 * e, 0.8, 0.02));
+      for (const [dx, dy] of [[-0.06, -0.05], [0.06, -0.05], [-0.06, 0.05], [0.06, 0.05]])
+        tronco.add(cx(0.07, 0.07, 0.02, mEsc, s * 0.37 * e + dx, 0.8 + dy, -0.2));
+    });
+    const clarao = cx(0.5, 0.4, 0.1, new THREE.MeshBasicMaterial({ color: 0xffd27a }), 0.37 * e, 0.8, -0.3);
+    clarao.visible = false;
+    tronco.add(clarao);
+    corpo.userData.clarao = clarao;                                                                         // a animação acende ao disparar
+  } else if (c.extra === 'zumbi') {
+    const mOlho = new THREE.MeshBasicMaterial({ color: 0xff2a2a });                                         // olhos acesos
+    cabeca.add(cx(0.045, 0.04, 0.02, mOlho, -0.055, 0.15, -0.136), cx(0.045, 0.04, 0.02, mOlho, 0.055, 0.15, -0.136));
+    tronco.add(cx(0.12, 0.1, 0.03, M(0x5c1a1a), 0.06 * e, 0.45, -0.15));                                    // ferida no peito
+  } else {                                                                                                  // Victor Gomes
+    cabeca.children.slice(1, 4).forEach(m => cabeca.remove(m));                                             // olhos e nariz já vêm na foto
+    const bainha = cx(0.035, 0.06, 0.9, mEsc, -0.2 * e, 0.05, 0.2);                                         // bainha da katana na cintura
+    bainha.rotation.x = 0.5;
+    tronco.add(bainha);
+  }
+
+  // braços: ombro → cotovelo → mão. Pendurados apontam pra baixo; rotation.x positivo leva pra frente.
+  const bracos = [1, -1].map(s => {        // [direito, esquerdo]
+    const cot = grupo(0, -0.29, 0, cil(0.045 * e, 0.038 * e, 0.27, vic ? mPele : mCam, -0.135), cx(0.075, 0.09, 0.08, mPele, 0, -0.31, 0));
+    const omb = grupo(s * 0.285 * e, 0.6, 0, bola(0.075 * e, mCam, 0, 0, 0), cil(0.058 * e, 0.047 * e, 0.29, mCam, -0.145), cot);
+    omb.rotation.order = 'YXZ';
+    tronco.add(omb);
+    return { omb, cot };
+  });
+  const armaG = new THREE.Group();         // arma na mão direita; -z dela aponta ao longo do antebraço
+  armaG.position.set(0, -0.33, -0.02);
+  armaG.rotation.x = -Math.PI / 2;
+  bracos[0].cot.add(armaG);
+
+  let corte = null;
+  if (c.arma === 6) {                      // arco branco do golpe de katana
+    corte = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.3, 10, 1, Math.PI / 2 - 0.9, 1.8),
+      new THREE.MeshBasicMaterial({ color: 0xe8f6ff, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    corte.position.set(0, 1.25, -0.2);
+    corte.rotation.x = -Math.PI / 2 + 0.35;
+    corte.visible = false;
+    raiz.add(corte);
+  }
+  raiz.userData = { c, corpo, pernas, joelhos, tronco, cabeca, bracos, armaG, corte };
+  return raiz;
+}
+function armar(mod, ai) { pecasArma(mod.userData.armaG, ai); }
+// Modelos das armas de fogo (Quaternius Ultimate Gun Pack, CC0). Chegam depois da página:
+// até lá vale a arma de caixinhas, e quando o modelo carrega as armas já montadas são refeitas.
+const ARQ_ARMA = ['AssaultRifle_1', 'SubmachineGun_1', 'Shotgun_1', 'SniperRifle_1', 'Pistol_1', 'Revolver_1'];
+const modeloArma = [], armasMontadas = [];
+if (THREE.OBJLoader && THREE.MTLLoader) ARQ_ARMA.forEach((arq, ai) => {
+  new THREE.MTLLoader().setPath('assets/armas/').load(arq + '.mtl', mats => {
+    mats.preload();
+    new THREE.OBJLoader().setMaterials(mats).setPath('assets/armas/').load(arq + '.obj', obj => {
+      const b = new THREE.Box3().setFromObject(obj);
+      obj.scale.setScalar(ARMAS[ai].comp / (b.max.x - b.min.x));      // encolhe pro comprimento da arma no jogo
+      obj.rotation.y = Math.PI / 2;                                    // o cano vem apontando pra +x; no jogo a frente é -z
+      obj.position.y = -0.03;
+      ARMAS[ai].boca = b.max.x * obj.scale.x;                          // distância da mão até a ponta do cano
+      obj.traverse(n => {                                              // o preto do pacote some na sombra: clareia e dá brilho
+        for (const m of n.material ? [].concat(n.material) : []) {
+          if (m.color.r + m.color.g + m.color.b < 0.3) m.color.setHex(0x34383f);
+          m.specular = new THREE.Color(0x555555); m.shininess = 40; m.flatShading = true;
+        }
+      });
+      modeloArma[ai] = new THREE.Group();
+      modeloArma[ai].add(obj);
+      armasMontadas.forEach(g => { if (g.userData.ai === ai) pecasArma(g, ai); });
+    }, undefined, () => {});
+  }, undefined, () => {});
+});
+function pecasArma(g, ai) {       // mesma arma serve pro boneco e pra visão em primeira pessoa
+  const A = ARMAS[ai], esc = M(0x1c1c1c), l = A.comp;
+  g.userData.ai = ai;
+  if (!armasMontadas.includes(g)) armasMontadas.push(g);
+  while (g.children.length) g.remove(g.children[0]);
+  if (ai === 7) return;                                                          // garras do zumbi: mãos vazias
+  if (modeloArma[ai]) { g.add(modeloArma[ai].clone()); return; }
+  if (A.melee) {                                                                 // katana
+    g.add(cx(0.025, 0.07, 1, M(0xdfe6ee), 0, 0, -0.62));                         // lâmina
+    g.add(cx(0.14, 0.14, 0.03, M(0xd4a017), 0, 0, -0.1));                        // guarda
+    g.add(cx(0.05, 0.05, 0.3, esc, 0, 0, 0.05));                                 // cabo
+    return;
+  }
+  if (A.missil) {                                                                // canhão de braço do Fonterector
+    g.add(cx(0.17, 0.17, 0.62, M(0x6b7a8c), 0, 0, -0.2));
+    g.add(cx(0.2, 0.2, 0.08, M(0xd4a017), 0, 0, -0.42));
+    g.add(cx(0.11, 0.11, 0.04, new THREE.MeshBasicMaterial({ color: 0xff8a1f }), 0, 0, -0.52));
+    return;
+  }
+  g.add(cx(0.09, 0.13, l, esc, 0, 0, -l / 2 + 0.12));                            // corpo + cano
+  g.add(cx(0.08, 0.2, 0.09, esc, 0, -0.14, 0.08));                               // punho
+  if (ai <= 1) g.add(cx(0.07, 0.25, 0.1, esc, 0, -0.17, -0.2));                  // carregador
+  if (ai === 2) g.add(cx(0.13, 0.1, 0.3, M(0x6b4423), 0, -0.05, -0.35));         // telha de madeira
+  if (ai === 3) g.add(cx(0.07, 0.07, 0.35, M(0x555555), 0, 0.12, -0.2));         // luneta
+  if (ai === 5) g.add(cx(0.13, 0.13, 0.12, M(0x555555), 0, 0, -0.05));           // tambor
+}
+function novaEntidade(cor) {
+  const g = new THREE.Group();
+  cena.add(g);
+  return { g, cor, c: -1, a: -1, mod: null, st: 0, pitch: 0, rec: false, tTiro: -9, tMorte: 0, fase: Math.random() * 10 };
+}
+function vestir(e, c, a) {
+  if (e.c !== c) {
+    if (e.mod) e.g.remove(e.mod);
+    e.mod = criarModelo(c, e.cor);
+    e.g.add(e.mod);
+    e.c = c; e.a = -1;
+  }
+  if (e.a !== a) { armar(e.mod, a); e.a = a; }
+}
+
+// Animação: cada estado define uma pose-alvo, e as juntas vão até ela suavemente.
+// A passada é um ciclo de 6 poses-chave percorrido de forma contínua (interpolando entre elas).
+// st: 0 parado · 1 andando · 2 correndo · 3 no ar · 4 morto.  e.ag = agachado.  e.em = emote (1 aceno, 2 passinho, 3 bíceps).
+const COXA = [0.7, 0.3, -0.15, -0.6, -0.25, 0.25];
+const JOELHO = [0.1, 0.05, 0.2, 0.5, 1.2, 0.9];
+const QUICA = [0, 0.05, 0.02, 0, 0.05, 0.02];
+const GIRO = [0.1, 0.05, 0, -0.1, -0.05, 0];
+const amostra = (arr, fase) => {      // valor do ciclo numa fase quebrada (ex.: 2,4 = 40% do caminho entre a pose 2 e a 3)
+  const i = Math.floor(fase), fr = fase - i, n = arr.length;
+  return arr[i % n] + (arr[(i + 1) % n] - arr[i % n]) * fr;
+};
+function animarCaixas(e, t) {
+  const u = e.mod.userData, tt = t + e.fase, A = ARMAS[e.a] || ARMAS[0], mira = e.pitch || 0;
+  const anda = e.st === 1 || e.st === 2, corre = e.st === 2, vivo = e.st !== 4;
+  let coxa = [0, 0], joe = [0, 0], desce = 0, incl = 0, gira = 0, cair = 0, sobe = 0, ladoX = 0, bal = 0;
+
+  // pernas e tronco
+  if (!vivo) {
+    const q = Math.min(1, (t - e.tMorte) * 3.2);
+    cair = 1.5 * q * q; sobe = 0.2 * q;                 // tomba acelerando
+    coxa = [0.3, -0.2]; joe = [0.5, 0.2];
+  } else if (e.st === 3) { coxa = [0.8, -0.3]; joe = [1.1, 0.6]; }
+  else if (anda) {
+    const fase = tt * (corre ? 13 : 9), k = corre ? 1.3 : 1;
+    coxa = [amostra(COXA, fase) * k, amostra(COXA, fase + 3) * k];
+    joe = [amostra(JOELHO, fase) * k, amostra(JOELHO, fase + 3) * k];
+    desce = amostra(QUICA, fase) * k; gira = amostra(GIRO, fase) * k; incl = corre ? 0.32 : 0.07;
+    bal = amostra(COXA, fase + 3) * 0.5;                // braço balança ao contrário da perna
+  } else {                                              // parado: respira e troca o peso de pé
+    desce = 0.012 + 0.01 * Math.sin(tt * 2.2); gira = 0.03 * Math.sin(tt * 1.1);
+  }
+  if (e.ag && vivo && e.st !== 3) {                     // agachado
+    coxa = coxa.map(a => a * 0.45 + 1.15); joe = joe.map(a => a * 0.35 + 1.95);
+    desce += 0.42; incl += 0.25;
+  }
+  const em = vivo && e.st === 0 ? e.em | 0 : 0, q8 = Math.floor(t * 8) % 8, q4 = q8 % 4;
+  if (em === 2) {                                       // passinho do Jamal
+    const esq = q4 < 2, alto = 0.65 - (q4 % 2) * 0.3;
+    coxa = esq ? [alto, -0.1] : [-0.1, alto];
+    joe = esq ? [1.1, 0.15] : [0.15, 1.1];
+    desce = q4 % 2 ? 0.02 : 0.07; incl = 0.12;
+    gira = [0.4, 0.15, -0.4, -0.15][q4] * (q8 < 4 ? 1 : -1);
+    ladoX = [0.07, 0.03, -0.07, -0.03][q4];
+  }
+
+  // braços: [giro pra dentro, elevação, cotovelo]
+  const tiro = t - e.tTiro;
+  let D, E, cortando = false;
+  if (!vivo) { D = [0.5, -0.5, 0.3]; E = [-0.5, -0.5, 0.3]; }
+  else if (em === 1) { D = [-0.25, 2.7 + (q8 % 2) * 0.3, 0.4 + (q8 % 2) * 0.5]; E = [0, 0.1, 0.2]; }          // aceno
+  else if (em === 2) { const s = q4 < 2 ? 1 : -1; D = [0.35, 1 + s * 0.45, 1.5]; E = [-0.35, 1 - s * 0.45, 1.5]; }
+  else if (em === 3) { const w = q4 < 2 ? 0 : 0.35; D = [-1.25, 1.57, 2.1 - w]; E = [1.25, 1.57, 2.1 - w]; }  // bíceps
+  else if (e.a === 7) {                                 // zumbi: braços esticados; dá um tapa ao atacar
+    const bate = tiro < 0.25;
+    D = [0.1, bate ? 0.8 : 1.45 + bal * 0.3, 0.15]; E = [-0.1, bate ? 2 : 1.5 - bal * 0.3, 0.2];
+    incl += 0.15;
+  } else if (A.missil) {                                // Fonterector: punhos à frente; o tronco joga pra trás ao disparar
+    const chute = tiro < 0.3 ? 1 - tiro / 0.3 : 0;
+    D = [0.2, 0.95 + mira + chute * 0.5, 0.6]; E = [-0.2, 0.95 + mira + chute * 0.5, 0.6];
+    incl -= chute * 0.28;
+  } else if (A.melee) {                                 // katana: guarda baixa, ou 3 poses de corte
+    const q = Math.floor(tiro / 0.08);
+    cortando = tiro >= 0 && q < 3;
+    if (cortando) { D = [[-0.3, 2.7, 0.5], [0.5, 1.5, 0.15], [1, 0.5, 0.1]][q]; gira = [-0.5, 0.2, 0.6][q]; }
+    else D = [0.1, 0.3 + bal, 0.35];
+    E = [0, 0.1 - bal, 0.25];
+  } else if (corre) { D = [0.4, 0.5 + bal, 1.3]; E = [-0.5, 0.6 - bal, 1.2]; }          // arma baixa, braços bombando
+  else if (e.rec) {                                     // recarga: mão esquerda vai até a arma
+    const w = 0.1 + 0.1 * Math.sin(tt * 14);
+    D = [0.3, 0.45, 1.1]; E = [-0.9, 0.7 + w, 1.3 - w];
+  } else {                                              // mirando: o ombro acompanha a mira; coice curto
+    const alto = mira + incl + (tiro < 0.07 ? 0.12 : 0);
+    D = [0.3, 0.6 + alto, 0.97];
+    E = A.comp > 0.5 ? [-0.7, 1.15 + alto, 0.35] : [-0.55, 0.75 + alto, 0.85];
+  }
+
+  // aplica: cada junta anda 40% do caminho até o alvo por quadro (o corte de katana e a morte vão mais rápido)
+  const k = cortando || !vivo ? 0.7 : 0.4, s = u.s || (u.s = {});
+  const para = (ch, v) => (s[ch] = s[ch] === undefined ? v : s[ch] + (v - s[ch]) * k);
+  u.pernas.forEach((p, i) => { p.rotation.x = para('c' + i, coxa[i]); u.joelhos[i].rotation.x = -para('j' + i, joe[i]); });
+  u.corpo.position.set(para('lx', ladoX), -para('dy', desce), 0);
+  const [bd, be] = u.bracos;
+  bd.omb.rotation.set(para('d1', D[1]), para('d0', D[0]), 0); bd.cot.rotation.x = para('d2', D[2]);
+  be.omb.rotation.set(para('e1', E[1]), para('e0', E[0]), 0); be.cot.rotation.x = para('e2', E[2]);
+  if (u.corte) u.corte.visible = cortando;
+  const luz = u.corpo.userData.clarao;
+  if (luz) luz.visible = tiro >= 0 && tiro < 0.08;      // clarão no casulo de míssil
+  u.tronco.rotation.set(-para('in', incl), para('gi', gira), 0);
+  u.cabeca.rotation.set(para('cb', vivo ? (em ? 0 : mira * 0.6) + incl : 0.4), -s.gi, 0);     // cabeça olha pra onde mira
+  e.mod.rotation.x = para('ca', cair); e.mod.position.y = para('so', sobe);
+}
+
+// ───────── Boneco com esqueleto (Quaternius Universal Animation Library, CC0) ─────────
+// Um modelo só, com 53 ossos e animações gravadas. Cada boneco do jogo é uma cópia dele, pintada
+// na cor da classe, com a cabeça/acessórios da classe presos nos ossos e a arma presa na mão direita.
+// Enquanto o arquivo não chega (ou se não chegar), valem os bonecos de caixa (criarModeloCaixas).
+const CLIPES = ['Idle_Loop', 'Walk_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop', 'Crouch_Idle_Loop', 'Crouch_Fwd_Loop', 'Jump_Loop', 'Death01',
+  'Dance_Loop', 'Idle_Talking_Loop', 'Sitting_Idle_Loop', 'Pistol_Aim_Neutral', 'Pistol_Aim_Up', 'Pistol_Aim_Down', 'Pistol_Shoot',
+  'Pistol_Reload', 'Sword_Idle', 'Sword_Attack', 'Push_Loop', 'Punch_Jab', 'Spell_Simple_Idle_Loop', 'Spell_Simple_Shoot'];
+const UMA_VEZ = new Set(['Death01', 'Pistol_Shoot', 'Sword_Attack', 'Punch_Jab', 'Spell_Simple_Shoot']);   // tocam uma vez e param
+const DE_BAIXO = /^(root|DEF-hips|DEF-thigh|DEF-shin|DEF-foot|DEF-toe)/;      // ossos da cintura pra baixo
+const ESCALA_BONECO = 1.97 / 1.83;
+let boneco = null;                // { cena, sub: { nome: { sup, inf, dur } } }
+if (gltf && THREE.SkeletonUtils) gltf.load('assets/boneco/ual.glb', g => {
+  // cada animação vira duas: só os ossos de cima e só os de baixo. Assim as pernas correm
+  // enquanto os braços miram — duas animações diferentes no mesmo corpo.
+  const sub = {};
+  for (const nome of CLIPES) {
+    const c = g.animations.find(a => a.name === nome);
+    if (!c) continue;
+    const parte = cima => new THREE.AnimationClip(nome + (cima ? '_c' : '_b'), c.duration, c.tracks.filter(tr => DE_BAIXO.test(tr.name) !== cima));
+    sub[nome] = { sup: parte(true), inf: parte(false), dur: c.duration };
+  }
+  boneco = { cena: g.scene, sub };
+  for (const e of [eu, vitrine, ...herois, ...outros.values()])     // refaz quem já existia com boneco de caixa
+    if (e && e.mod) { const c = e.c, a = e.a; e.c = -1; vestir(e, c, a); }
+}, undefined, () => {});
+
+function criarModelo(ci, cor) {
+  if (!boneco) return criarModeloCaixas(ci, cor);
+  const c = PERSONAGENS[ci], robo = c.extra === 'robo', raiz = new THREE.Group();
+  const corpo = THREE.SkeletonUtils.clone(boneco.cena), larg = 0.8 + 0.2 * c.esc;
+  corpo.scale.set(ESCALA_BONECO * larg, ESCALA_BONECO, ESCALA_BONECO * larg);
+  corpo.rotation.y = Math.PI;                      // o modelo vem de frente pra +z; no jogo a frente é -z
+  raiz.add(corpo);
+  const corCorpo = c.extra === 'zumbi' ? c.pele : c.camisa || cor;
+  corpo.traverse(n => {
+    if (!n.isMesh) return;
+    n.frustumCulled = false;
+    n.material = n.material.clone();
+    n.material.color.setHex(n.material.name === 'M_Joints' ? (robo ? c.det : c.calca) : corCorpo);
+    n.material.metalness = robo ? 0.35 : 0; n.material.roughness = robo ? 0.5 : 0.9;
+  });
+  raiz.updateMatrixWorld(true);
+  const q = new THREE.Quaternion();
+  const prender = (osso, obj, giro) => {           // gruda obj num osso, "em pé" como estaria solto no mundo
+    const b = corpo.getObjectByName(osso);
+    b.getWorldQuaternion(q);
+    obj.quaternion.copy(q.invert());
+    if (giro) obj.quaternion.multiply(giro);
+    obj.scale.setScalar(1 / ESCALA_BONECO);
+    b.add(obj);
+    return obj;
+  };
+  // cabeça e acessórios da classe: reaproveita os do boneco de caixa (inclui a foto do Victor e a cabeça do robô)
+  const cab = criarModeloCaixas(ci, cor).userData.cabeca;
+  cab.position.set(0, -0.03, 0);
+  prender('DEF-head', cab);
+  // arma na mão direita. O giro foi medido na pose de mira: é o que deixa o cano apontando pra frente e a arma em pé.
+  const mao = new THREE.Group(), armaG = new THREE.Group();
+  mao.quaternion.set(0.6412, -0.0255, 0.0074, 0.7669);
+  mao.scale.setScalar(1 / ESCALA_BONECO);
+  mao.position.set(0, 0.08, 0.02);
+  corpo.getObjectByName('DEF-handR').add(mao);
+  mao.add(armaG);
+  let clarao = null, corte = null;
+  if (robo) {                                      // casulos de míssil nos ombros
+    const peito = prender('DEF-spine003', new THREE.Group());
+    for (const s of [-1, 1]) {
+      peito.add(cx(0.22, 0.2, 0.38, M(c.det), s * 0.36, 0.16, 0.06));
+      for (const [dx, dy] of [[-0.05, -0.045], [0.05, -0.045], [-0.05, 0.045], [0.05, 0.045]]) peito.add(cx(0.06, 0.06, 0.02, M(0x241c18), s * 0.36 + dx, 0.16 + dy, -0.14));
+    }
+    peito.add(cx(0.14, 0.14, 0.03, new THREE.MeshBasicMaterial({ color: 0xff8a1f }), 0, 0, -0.15));      // núcleo aceso
+    clarao = cx(0.45, 0.36, 0.1, new THREE.MeshBasicMaterial({ color: 0xffd27a }), 0.36, 0.16, -0.26);
+    clarao.visible = false;
+    peito.add(clarao);
+  }
+  if (c.arma === 6) {                              // arco branco do golpe de katana
+    corte = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.3, 10, 1, Math.PI / 2 - 0.9, 1.8),
+      new THREE.MeshBasicMaterial({ color: 0xe8f6ff, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    corte.position.set(0, 1.25, -0.2);
+    corte.rotation.x = -Math.PI / 2 + 0.35;
+    corte.visible = false;
+    raiz.add(corte);
+  }
+  const mixer = new THREE.AnimationMixer(corpo), sup = {}, inf = {};
+  for (const nome in boneco.sub) for (const [parte, mapa] of [['sup', sup], ['inf', inf]]) {
+    const a = mixer.clipAction(boneco.sub[nome][parte]);
+    if (UMA_VEZ.has(nome)) { a.setLoop(THREE.LoopOnce); a.clampWhenFinished = true; }
+    a.weight = nome === 'Idle_Loop' ? 1 : 0;
+    a.play();
+    mapa[nome] = a;
+  }
+  raiz.userData = { c, esq: true, mixer, sup, inf, armaG, corte, clarao, vivo: true, tiroVisto: -9 };
+  return raiz;
+}
+
+// Escolhe a animação das pernas pelo movimento e a dos braços pela arma, e mistura aos poucos.
+function animar(e, t) {
+  const u = e.mod.userData;
+  if (!u.esq) { animarCaixas(e, t); return; }
+  const A = ARMAS[e.a] || ARMAS[0], vivo = e.st !== 4, anda = e.st === 1 || e.st === 2, zumbi = e.a === 7;
+  const dt = Math.min(0.1, Math.max(0, t - (u.tAnt === undefined ? t : u.tAnt)));
+  u.tAnt = t;
+  const em = vivo && e.st === 0 ? e.em | 0 : 0, tiro = t - e.tTiro;
+  const pernas = !vivo ? 'Death01' : em === 2 ? 'Dance_Loop' : em === 1 ? 'Idle_Talking_Loop' : em === 3 ? 'Sitting_Idle_Loop'
+    : e.st === 3 ? 'Jump_Loop' : e.ag ? (anda ? 'Crouch_Fwd_Loop' : 'Crouch_Idle_Loop')
+    : e.st === 2 ? 'Sprint_Loop' : e.st === 1 ? (zumbi ? 'Walk_Loop' : 'Jog_Fwd_Loop') : 'Idle_Loop';
+  const bracos = {};                               // nome da animação -> quanto ela pesa nos braços
+  if (!vivo || em || e.st === 2) bracos[pernas] = 1;                 // corpo inteiro na mesma animação
+  else if (zumbi) bracos[tiro >= 0 && tiro < 0.4 ? 'Punch_Jab' : 'Push_Loop'] = 1;
+  else if (A.melee) bracos[tiro >= 0 && tiro < 0.5 ? 'Sword_Attack' : 'Sword_Idle'] = 1;
+  else if (A.missil) bracos[tiro >= 0 && tiro < 0.6 ? 'Spell_Simple_Shoot' : 'Spell_Simple_Idle_Loop'] = 1;
+  else if (e.rec) bracos.Pistol_Reload = 1;
+  else if (tiro >= 0 && tiro < 0.12) bracos.Pistol_Shoot = 1;
+  else {                                           // mira: mistura "neutro" com "pra cima" ou "pra baixo" conforme o olhar
+    const p = Math.max(-1, Math.min(1, (e.pitch || 0) / 0.9));
+    bracos.Pistol_Aim_Neutral = 1 - Math.abs(p);
+    bracos[p > 0 ? 'Pistol_Aim_Up' : 'Pistol_Aim_Down'] = Math.abs(p);
+  }
+  if (e.tTiro !== u.tiroVisto) {                   // novo disparo/golpe: as animações de uma vez só recomeçam
+    u.tiroVisto = e.tTiro;
+    for (const n of ['Pistol_Shoot', 'Sword_Attack', 'Punch_Jab', 'Spell_Simple_Shoot']) { u.sup[n].reset(); u.inf[n].reset(); }
+  }
+  if (vivo !== u.vivo) { u.vivo = vivo; u.sup.Death01.reset(); u.inf.Death01.reset(); }
+  const k = 1 - Math.exp(-(vivo ? 12 : 25) * dt);
+  for (const n in u.inf) {
+    u.inf[n].weight += ((n === pernas ? 1 : 0) - u.inf[n].weight) * k;
+    u.sup[n].weight += ((bracos[n] || 0) - u.sup[n].weight) * k;
+  }
+  u.mixer.update(dt);
+  if (u.corte) u.corte.visible = A.melee && tiro >= 0.1 && tiro < 0.3;
+  if (u.clarao) u.clarao.visible = tiro >= 0 && tiro < 0.08;
+}
+
+// ───────── Arma em primeira pessoa ─────────
+const vm = new THREE.Group();
+cenaVM.add(vm);
+const vmClarao = cx(0.16, 0.16, 0.05, new THREE.MeshBasicMaterial({ color: 0xffe08a }), 0, 0, 0);
+const vmAlvo = new V3();
+let vmCoice = 0;
+function montarVM() {             // refaz ao nascer e ao trocar de arma
+  while (vm.children.length) vm.remove(vm.children[0]);
+  const ai = armaIdx(), A = ARMAS[ai], mBraco = M(eu ? eu.cor : CORES[0]), g = new THREE.Group();
+  pecasArma(g, ai);
+  const longa = A.comp > 0.5 && !A.melee;     // arma longa: mão esquerda vai lá na frente
+  const bd = cx(0.1, 0.1, 0.5, mBraco, 0.05, -0.17, 0.3);
+  const be = cx(0.1, 0.1, 0.5, mBraco, longa ? -0.17 : -0.1, -0.15, longa ? -0.05 : 0.27);
+  be.rotation.y = longa ? -0.6 : -0.3;
+  vmClarao.position.set(0, 0.03, -(A.boca || A.comp - 0.08) - 0.06);
+  vm.add(g, bd, be, vmClarao);
+}
+function poseVM(dt) {
+  if (ARMAS[armaIdx()].melee) {         // katana: erguida, ou 3 poses secas de corte (sem suavizar)
+    const t = T - eu.tTiro, f = Math.floor(t / 0.08);
+    const passo = noChao && Math.hypot(vel.x, vel.z) > 0.8 ? [0, -0.02, 0, -0.02][Math.floor(T * 7) % 4] : 0;
+    const p = t >= 0 && f < 3
+      ? [[0.34, -0.08, -0.5, 1.5, -0.7], [0.02, -0.2, -0.5, 0.2, 0.5], [-0.3, -0.4, -0.45, -0.7, 1.2]][f]
+      : [0.3, -0.36 + passo, -0.5, 0.5, -0.55];       // parada: lâmina baixa, atravessada
+    vm.position.set(p[0], p[1], p[2]);
+    vm.rotation.set(p[3], p[4], 0);
+    vmClarao.visible = false;
+    return;
+  }
+  const k = 1 - Math.exp(-20 * dt);
+  // mirando, a arma vem pro centro e sobe até a mira ficar logo abaixo do ponto
+  let x = 0.2 * (1 - mAds), y = -0.2 + 0.095 * mAds, z = -0.45 + 0.1 * mAds, rx = 0, ry = 0;
+  if (noChao && Math.hypot(vel.x, vel.z) > 0.8) {   // balanço em 4 poses, igual à passada dos bonecos
+    const f = Math.floor(T * (correndo ? 11 : 7)) % 4, a = (correndo ? 2.2 : 1) * (1 - mAds * 0.8);
+    x += [0.01, 0, -0.01, 0][f] * a; y += [0, -0.014, 0, -0.014][f] * a;
+  }
+  if (correndo) { y -= 0.06; rx = -0.25; ry = 0.55; }                  // correndo: arma atravessada
+  if (tRec > 0) { y -= 0.16; rx = -0.7 + (Math.floor(T * 6) % 2) * 0.12; }
+  if (tTroca > 0) y -= 0.3 * (tTroca / 0.45);
+  vmCoice *= Math.exp(-18 * dt);
+  vm.position.lerp(vmAlvo.set(x, y, z + 0.07 * vmCoice), k);
+  vm.rotation.x += (rx + 0.09 * vmCoice - vm.rotation.x) * k;
+  vm.rotation.y += (ry - vm.rotation.y) * k;
+  vmClarao.visible = T - eu.tTiro < 0.05;                             // clarão do tiro por 1 quadro
+}
+
+// ───────── Som (sintetizado, sem arquivos) ─────────
+// O navegador só deixa tocar som depois de um clique/tecla. Enquanto não libera (somOk),
+// os sons são descartados em vez de enfileirados — senão tocariam todos juntos depois.
+let ac = null, somOk = false;
+function som(freq, dur, vol, tipo) {
+  if (!ac || !somOk || vol <= 0.002) return;
+  const osc = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime;
+  osc.type = tipo || 'sawtooth';
+  osc.frequency.setValueAtTime(freq, t0);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * 0.3), t0 + dur);
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  osc.connect(g).connect(ac.destination);
+  osc.start(); osc.stop(t0 + dur);
+}
+// Tiro = estalo de ruído filtrado + cauda grave + um "soco" em seno. Cada arma muda filtro, duração e grave.
+let ruidoBuf = null;
+function ruido(dur, hz, vol) {
+  if (!ac || !somOk || vol <= 0.003) return;
+  if (!ruidoBuf) {
+    ruidoBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+    const d = ruidoBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t0 = ac.currentTime;
+  s.buffer = ruidoBuf;
+  f.type = 'lowpass'; f.frequency.setValueAtTime(hz, t0); f.frequency.exponentialRampToValueAtTime(Math.max(80, hz * 0.2), t0 + dur);
+  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  s.connect(f).connect(g).connect(ac.destination);
+  s.start(t0, Math.random(), dur + 0.05);
+}
+function somTiro(ai, de) {
+  const A = ARMAS[ai], d = de ? de.distanceTo(pos) : 0, v = (de ? 0.6 : 1) * Math.max(0, 1 - d / 75);
+  if (!A.tiro) { som(A.som, 0.14, 0.12 * v, 'triangle'); return; }
+  ruido(A.tiro[1], A.tiro[0], 0.55 * v);
+  ruido(A.tiro[1] * 2.5, 420, 0.22 * v);
+  som(A.tiro[2], A.tiro[1] * 0.8, 0.4 * v, 'sine');
+}
+
+// ───────── Estado ─────────
+let T = 0;                                   // relógio do jogo, em segundos
+let meuId = 0, abates = 0, vida = 100, vidaMax = 100;
+let morto = true, fora = true, naTitulo = true, noChao = false, emFim = false, fimAte = 0;
+let yaw = 0, pitch = 0, mirando = false, correndo = false, mAds = 0;
+let atirando = false, botaoDir = false, gatilho = true, querPular = false;
+let slot = 0, municao = [0, 0], tRec = 0, tTroca = 0, tCad = 0, tDano = -99, timerNascer = 0;
+const pos = new V3(), vel = new V3();
+let eu = null;
+const outros = new Map();   // id -> entidade (+ alvo, yaw, morto, fora, k, bot?)
+const tiros = [];
+const teclas = {};
+const SPAWNS = [[-31, -31], [31, 31], [-31, 31], [31, -31], [-31, 0], [31, 0], [-10, -31], [10, 31]];
+let bloom = 0, recuo = 0, tUltTiro = -9;        // espalhamento acumulado da rajada e coice a devolver
+let tChao = -9, tPulo = -9, baque = 0, tremor = 0, alvoTravado = 0;
+let liberado = false;                           // classe Fonterector destrancada neste navegador?
+try { liberado = localStorage.getItem('fonterector-robo') === '1'; } catch (e) {}
+function destrancar(i) {
+  if (!PERSONAGENS[i].trancado || liberado) return true;
+  if (prompt('Senha do Fonterector:') !== SENHA_ROBO) return false;
+  liberado = true;
+  try { localStorage.setItem('fonterector-robo', '1'); } catch (e) {}
+  return true;
+}
+
+let escolha = { c: 1, p: 0, s: 4 };
+try {
+  const g = JSON.parse(localStorage.getItem('fonterector') || 'null');
+  if (g && PERSONAGENS[g.c] && !PERSONAGENS[g.c].oculto && (!PERSONAGENS[g.c].trancado || liberado) && ARMAS[g.p] && ARMAS[g.p].slot === 0 && ARMAS[g.s] && ARMAS[g.s].slot === 1) escolha = g;
+} catch (e) {}
+const armaFixa = () => PERSONAGENS[escolha.c].arma;       // undefined = classe escolhe as armas
+const armaIdx = () => armaFixa() !== undefined ? armaFixa() : slot === 0 ? escolha.p : escolha.s;
+let querDash = false, tDash = -9, dashPronto = true, agachado = false, olho = OLHO;
+let modo = 'arcade', ondaN = 0, baseVida = 100;      // modo da sala; onda e vida do Fonterector vêm do host
+let emote = 0, tEmoteFim = 0, tique = 0;
+const dashDir = new V3(), DASH_CD = 2.5;
+const nome = id => id === meuId ? 'Você' : id <= -10 ? 'Zumbi' : id < 0 ? 'Bot' + (-id) : 'J' + id;
+
+function nascer() {
+  if (fora) return;
+  let x = 0, z = 0;
+  for (let i = 0; i < 20; i++) {              // sorteia um ponto de nascer que não esteja dentro de nada
+    [x, z] = SPAWNS[Math.floor(Math.random() * SPAWNS.length)];
+    pos.set(x, 0, z);
+    if (!bate(pos)) break;
+  }
+  vel.set(0, 0, 0); bloom = 0; recuo = 0;
+  yaw = Math.atan2(x, z); pitch = 0;      // olhando pro centro
+  vidaMax = PERSONAGENS[escolha.c].vida; vida = vidaMax;
+  slot = 0; tRec = 0; tTroca = 0; tCad = 0;
+  municao = [ARMAS[armaFixa() !== undefined ? armaFixa() : escolha.p].pente, ARMAS[escolha.s].pente];
+  morto = false;
+  if (eu) { vestir(eu, escolha.c, armaIdx()); eu.g.visible = true; montarVM(); }
+  hud();
+}
+
+function hud() {
+  $('vida').firstChild.style.width = Math.max(0, vida / vidaMax * 100) + '%';
+  let t = 'Você ' + abates;
+  for (const [id, o] of outros) if (id > -10) t += '  ×  ' + o.k + ' ' + nome(id);
+  if (modo === 'ondas') t = 'ONDA ' + ondaN + '  ·  FONTERECTOR ' + baseVida + '%  ·  ' + t;
+  $('placar').textContent = modo === 'ondas' || outros.size ? t : 'Sozinho na sala — B chama um bot · Esc abre o menu';
+  const A = ARMAS[armaIdx()];
+  if (A.melee) $('municao').innerHTML = (T - tDash > DASH_CD ? 'DASH' : '· · ·') + '<small>KATANA · SHIFT OU BOTÃO DIREITO</small>';
+  else $('municao').innerHTML = (tRec > 0 ? '…' : municao[slot]) + ' / ' + A.pente + '<small>' + A.nome.toUpperCase() + (tRec > 0 ? ' · RECARREGANDO' : '') + '</small>';
+}
+function aviso(txt, ms) {
+  $('aviso').textContent = txt;
+  if (ms) setTimeout(() => { if ($('aviso').textContent === txt) $('aviso').textContent = ''; }, ms);
+}
+function feed(txt) {
+  const d = document.createElement('div');
+  d.textContent = txt;
+  $('feed').append(d);
+  setTimeout(() => d.remove(), 4500);
+}
+function marcador(cabeca, dano) {
+  if (dano) {                                 // número do dano subindo ao lado da mira
+    const n = document.createElement('div');
+    n.className = 'num' + (cabeca ? ' cab' : '');
+    n.textContent = Math.round(dano);
+    n.style.left = 50 + (Math.random() * 6 - 1) + '%';
+    $('hud').append(n);
+    setTimeout(() => n.remove(), 600);
+  }
+  const m = $('mira');
+  m.className = cabeca ? 'cabeca' : 'hit';
+  setTimeout(() => m.className = '', 110);
+  som(cabeca ? 1300 : 900, 0.05, 0.06, 'square');
+}
+
+// ───────── Título e loadout ─────────
+// Fora do jogo (título/loadout) eu conto como "morto": invisível e intocável.
+// A abertura é uma linha do tempo: o CSS cuida do que aparece (atrasos de animação)
+// e o JS dispara, nos mesmos instantes, som, tremor e relâmpago.
+const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;   // sem flashes nem tremor
+const elT = $('titulo'), conteudo = elT.querySelector('.conteudo');
+let etapa = 0, clarao = 0, trilha = null, temAcorde = false, coracao = 0, tIntro = 0, destravouAgora = false;
+const timers = [];
+const depois = (ms, f) => timers.push(setTimeout(f, ms));
+$('logo').innerHTML = [...'FONTERECTOR'].map((l, i) => '<span style="--i:' + i + '">' + l + '</span>').join('');
+
+// três operadores de costas um pro outro em cima do bloco central, só pra pose
+const herois = [[3, 6, 1, 0, 1.3], [5, 8, 0, -1.25, 0.2], [2, 3, 2, 1.25, 0.2]].map(([c, a, cor, x, z]) => {
+  const h = novaEntidade(CORES[cor]);      // em V, de frente pra câmera, o Victor na ponta
+  vestir(h, c, a);
+  h.g.position.set(x, 2.2, z);
+  h.g.rotation.y = Math.PI + x * 0.3;      // os de trás levemente abertos pra fora
+  h.g.visible = false;                     // cada um aparece na sua hora (aparecer)
+  return h;
+});
+// fogo 3D da abertura: partículas que sobem, afinam e apagam (amarelo → vermelho)
+const N_FOGO = 340, fogoP = [];
+const fogoPos = new Float32Array(N_FOGO * 3), fogoCor = new Float32Array(N_FOGO * 3);
+for (let i = 0; i < N_FOGO; i++) {
+  const topo = i % 5 < 3, ang = Math.random() * Math.PI * 2, r = topo ? 1.9 + Math.random() * 0.5 : 3.3 + Math.random() * 1.3;
+  fogoP.push({ x: Math.sin(ang) * r, z: Math.cos(ang) * r, y0: topo ? 2.2 : 0, h: topo ? 1.2 + Math.random() : 2 + Math.random() * 1.6, v: 0.5 + Math.random() * 0.7, t: Math.random() });
+}
+const fogoGeo = new THREE.BufferGeometry();
+fogoGeo.setAttribute('position', new THREE.BufferAttribute(fogoPos, 3));
+fogoGeo.setAttribute('color', new THREE.BufferAttribute(fogoCor, 3));
+const texChama = (() => {               // bolinha macia desenhada num canvas
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 32;
+  const g = cv.getContext('2d'), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+  gr.addColorStop(0, '#fff'); gr.addColorStop(0.4, 'rgba(255,255,255,.6)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(cv);
+})();
+const chamas = new THREE.Points(fogoGeo, new THREE.PointsMaterial({ size: 0.8, map: texChama, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+chamas.frustumCulled = false;
+cena.add(chamas);
+let fogoNivel = 0, fogoAlvo = 0, tRaio = 9, tOlhar = 3.3;
+function animarFogo(dt) {
+  fogoNivel += (fogoAlvo - fogoNivel) * (1 - Math.exp(-2.5 * dt));
+  for (let i = 0; i < N_FOGO; i++) {
+    const p = fogoP[i], j = i * 3;
+    p.t += p.v * dt;
+    if (p.t > 1) p.t -= 1;
+    const k = i / N_FOGO < fogoNivel ? 1 - p.t : 0, w = Math.sin(T * 3 + i) * 0.12 * p.t;
+    fogoPos[j] = p.x * (1 - p.t * 0.15) + w; fogoPos[j + 1] = p.y0 + p.t * p.h; fogoPos[j + 2] = p.z * (1 - p.t * 0.15) + w;
+    fogoCor[j] = k; fogoCor[j + 1] = k * (0.75 - p.t * 0.65); fogoCor[j + 2] = k * 0.12 * (1 - p.t);
+  }
+  fogoGeo.attributes.position.needsUpdate = true;
+  fogoGeo.attributes.color.needsUpdate = true;
+}
+
+// Música da abertura, toda sintetizada: um sequenciador de semicolcheias em Ré menor
+// (Rém – Si♭ – Fá – Dó). Antes do título só tambor lento; no título entram cordas, acorde e melodia.
+const PASSO = 60 / 96 / 4;
+const ACORDES = [[38, 3], [34, 4], [41, 4], [36, 4]];                  // [nota MIDI da raiz, terça menor(3)/maior(4)]
+const MELODIA = [[69, 74], [70, 74], [72, 77], [72, 76]];
+const OSTINATO = [0, 0, 7, 0, 12, 0, 7, 0, 0, 0, 7, 0, 12, 7, 15, 7];
+const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
+let musica = null;
+function tocarNota(dest, tipo, f, t, dur, vol, ataque) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = tipo; o.frequency.value = f;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + ataque);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(dest);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+function tambor(dest, t, vol) {           // tambor grave: seno que despenca de 110 pra 38 Hz
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.frequency.setValueAtTime(110, t);
+  o.frequency.exponentialRampToValueAtTime(38, t + 0.28);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+  o.connect(g).connect(dest);
+  o.start(t); o.stop(t + 0.5);
+}
+function iniciarMusica(cheia) {
+  if (!ac || musica) return;
+  const saida = ac.createGain(), filtro = ac.createBiquadFilter();
+  saida.gain.setValueAtTime(0.0001, ac.currentTime);
+  saida.gain.exponentialRampToValueAtTime(0.5, ac.currentTime + 1);
+  saida.connect(ac.destination);
+  filtro.type = 'lowpass'; filtro.frequency.value = 2200;
+  filtro.connect(saida);
+  musica = { saida, filtro, cheia, passo: 0, prox: ac.currentTime + 0.1, timer: setInterval(agendarMusica, 80) };
+}
+function agendarMusica() {                // agenda as notas dos próximos 0,35s (o relógio do áudio é mais preciso que o setInterval)
+  const m = musica;
+  if (!m) return;
+  while (m.prox < ac.currentTime + 0.35) {
+    const s = m.passo % 16, compasso = Math.floor(m.passo / 16) % 4, [raiz, terca] = ACORDES[compasso], t = m.prox;
+    if (!m.cheia) { if (s === 0) tambor(m.saida, t, 0.8); }
+    else {
+      if ([0, 3, 6, 8, 11, 14].includes(s)) tambor(m.saida, t, s % 8 === 0 ? 0.9 : 0.5);
+      const o = OSTINATO[s] === 15 ? 12 + terca : OSTINATO[s];
+      tocarNota(m.filtro, 'sawtooth', hz(raiz + 12 + o), t, PASSO * 0.8, 0.09, 0.005);               // cordas em staccato
+      if (s === 0) {
+        [0, terca, 7, 12].forEach(i => tocarNota(m.filtro, 'sawtooth', hz(raiz + 12 + i), t, PASSO * 16, 0.05, 0.3));   // acorde
+        tocarNota(m.saida, 'sine', hz(raiz), t, PASSO * 16, 0.3, 0.05);                              // baixo
+      }
+      if (s % 8 === 0) {                                                                             // melodia: duas notas por compasso
+        const n = MELODIA[compasso][s / 8];
+        tocarNota(m.filtro, 'square', hz(n), t, PASSO * 7.5, 0.05, 0.08);
+        tocarNota(m.filtro, 'sawtooth', hz(n - 12), t, PASSO * 7.5, 0.06, 0.08);
+      }
+    }
+    m.prox += PASSO; m.passo++;
+  }
+}
+function musicaCheia() {                  // vira a chave no instante em que o título cai
+  if (!musica || musica.cheia) return;
+  musica.cheia = true; musica.passo = 0; musica.prox = ac.currentTime + 0.03;
+}
+function pararMusica() {
+  if (!musica) return;
+  clearInterval(musica.timer);
+  const t0 = ac.currentTime;
+  musica.saida.gain.cancelScheduledValues(t0);
+  musica.saida.gain.setValueAtTime(Math.max(0.0001, musica.saida.gain.value), t0);
+  musica.saida.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.8);
+  musica = null;
+}
+function aparecer(i) {                    // um operador sai do escuro: pancada de tambor e o fogo cresce
+  herois[i].g.visible = true;
+  fogoAlvo = (i + 1) / 3;
+  if (!calmo) clarao = 0.45;
+  som(70, 0.6, 0.5, 'sine');
+  tremer(8);
+}
+
+const DIA = 0x9fb3c8, NOITE = 0x000000;
+function modoNoite(on) {
+  cena.background.set(on ? NOITE : DIA);
+  cena.fog.color.set(on ? NOITE : DIA);
+  cena.fog.near = on ? 6 : 35; cena.fog.far = on ? 55 : 110;
+  chamas.visible = on;
+  if (!on) herois.forEach(h => h.g.visible = false);
+  if (!on) { luzCeu.intensity = 0.9; sol.intensity = 0.7; fogo.intensity = 0; }
+}
+modoNoite(true);
+
+function trovao(vol) {                       // ruído branco abafado que vai morrendo
+  if (!ac || !somOk) return;
+  const n = Math.floor(ac.sampleRate * 2.2), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.2);
+  const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = buf; f.type = 'lowpass'; f.frequency.value = 500; g.gain.value = vol;
+  s.connect(f).connect(g).connect(ac.destination);
+  s.start();
+}
+function tocarTrilha(aberto) {               // zumbido grave que "abre" na hora do título
+  if (!ac) return;
+  const g = ac.createGain(), f = ac.createBiquadFilter(), t0 = ac.currentTime;
+  f.type = 'lowpass';
+  if (aberto) f.frequency.setValueAtTime(1400, t0);      // som liberado tarde: já entra aberto
+  else {
+    const falta = Math.max(0.1, 4.4 - (performance.now() - tIntro) / 1000);   // quanto falta pro título cair
+    f.frequency.setValueAtTime(240, t0);
+    f.frequency.setValueAtTime(240, t0 + falta);
+    f.frequency.exponentialRampToValueAtTime(1400, t0 + falta + 1.9);
+  }
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.16, t0 + (aberto ? 1.2 : 3.5));
+  f.connect(g).connect(ac.destination);
+  const oscs = [55, 55.6, 82.4, 110.3].map(fr => {
+    const o = ac.createOscillator();
+    o.type = 'sawtooth'; o.frequency.value = fr;
+    o.connect(f); o.start();
+    return o;
+  });
+  trilha = { g, oscs };
+}
+function acorde() {                          // lá menor sustentado por cima do zumbido
+  if (!trilha || temAcorde) return;
+  temAcorde = true;
+  const ga = ac.createGain(), t0 = ac.currentTime;
+  ga.gain.setValueAtTime(0.0001, t0);
+  ga.gain.exponentialRampToValueAtTime(0.35, t0 + 2);
+  ga.connect(trilha.g);
+  [220, 261.6, 329.6, 440, 659.3].forEach(fr => {
+    const o = ac.createOscillator();
+    o.type = 'triangle'; o.frequency.value = fr;
+    o.connect(ga); o.start();
+    trilha.oscs.push(o);
+  });
+}
+function pararTrilha() {
+  if (!trilha) return;
+  const t0 = ac.currentTime;
+  trilha.g.gain.cancelScheduledValues(t0);
+  trilha.g.gain.setValueAtTime(Math.max(0.0001, trilha.g.gain.value), t0);
+  trilha.g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.8);
+  trilha.oscs.forEach(o => o.stop(t0 + 0.9));
+  trilha = null;
+}
+function tremer(f) {
+  if (calmo) return;
+  const k = [];
+  for (let i = 0; i < 8; i++) k.push({ transform: 'translate(' + (Math.random() - 0.5) * f + 'px,' + (Math.random() - 0.5) * f + 'px)' });
+  k.push({ transform: 'none' });
+  conteudo.animate(k, { duration: 380 });
+}
+function relampago(f) {
+  if (!calmo) {
+    clarao = f;                                // o loop usa isso pra estourar as luzes 3D
+    $('flash').animate([{ opacity: 0.85 * f }, { opacity: 0.1 }, { opacity: 0.5 * f }, { opacity: 0 }], { duration: 420 });
+  }
+  setTimeout(() => trovao(0.5 * f), 180);      // o trovão chega um pouco depois do clarão
+}
+
+function ligarSom() {
+  try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  const conferir = () => {
+    if (ac.state !== 'running') { $('semSom').hidden = !naTitulo; return; }
+    somOk = true;
+    $('semSom').hidden = true;
+    if (naTitulo && !trilha) {                 // entra na trilha do ponto em que a abertura estiver
+      tocarTrilha(elT.classList.contains('revela'));
+      iniciarMusica(elT.classList.contains('revela'));
+    }
+  };
+  ac.onstatechange = conferir;
+  conferir();
+  const destravar = () => {
+    if (ac.state === 'running') return;
+    ac.resume();
+    somOk = true; destravouAgora = true;
+  };
+  addEventListener('pointerdown', destravar, true);
+  addEventListener('keydown', destravar, true);
+  addEventListener('click', () => destravouAgora = false);   // roda depois do clique do título
+}
+function comecarIntro() {
+  etapa = 1;
+  tIntro = performance.now();
+  elT.classList.add('vai');
+  ligarSom();
+  som(40, 2.5, 0.35, 'sine');
+  if (calmo) { ficarPronto(); return; }
+  [700, 1800, 2900].forEach((ms, i) => depois(ms, () => aparecer(i)));    // um operador por vez, saindo do escuro
+  depois(4500, () => { elT.classList.add('revela'); relampago(1); musicaCheia(); });
+  for (let i = 0; i < 11; i++) depois(4500 + i * 130, () => { som(95 - i * 3, 0.3, 0.3); tremer(10 + i * 1.5); });   // uma pancada por letra
+  depois(6150, () => { relampago(1); som(55, 2, 0.6); tremer(45); });
+  depois(7000, ficarPronto);
+}
+function ficarPronto() {
+  if (etapa === 2) return;
+  const pulou = !elT.classList.contains('revela');
+  etapa = 2;
+  timers.forEach(clearTimeout); timers.length = 0;
+  elT.classList.add('revela', 'pronto');
+  herois.forEach(h => h.g.visible = true);
+  fogoAlvo = 1;
+  musicaCheia();
+  if (pulou) { relampago(1); som(55, 2, 0.6); tremer(45); }
+  const raio = () => depois(2500 + Math.random() * 5000, () => { relampago(0.5 + Math.random() * 0.5); raio(); });
+  raio();
+}
+function entrar() {
+  naTitulo = false;
+  timers.forEach(clearTimeout); timers.length = 0;
+  clearInterval(coracao);
+  pararTrilha();
+  pararMusica();
+  elT.classList.add('some');
+  som(130, 1.2, 0.5);
+  trovao(0.6);
+  modoNoite(false);
+  if (sala) entrarNaSala(sala, null); else abrirSalas();    // veio por link de sala: entra direto nela
+}
+elT.addEventListener('click', () => {
+  if (!naTitulo || etapa === 0) return;
+  if (etapa === 2) entrar();
+  else if (!destravouAgora) ficarPronto();   // clicar no meio pula a abertura (o 1º clique só liga o som)
+});
+setTimeout(comecarIntro, 400);               // começa sozinha, sem pedir clique
+
+// brasas subindo (canvas 2D por cima do 3D)
+const cb = $('brasas'), ctxB = cb.getContext('2d'), brasas = [];
+function desenharBrasas(dt) {
+  if (cb.width !== innerWidth || cb.height !== innerHeight) { cb.width = innerWidth; cb.height = innerHeight; }
+  ctxB.clearRect(0, 0, cb.width, cb.height);
+  if (!elT.classList.contains('revela')) return;
+  while (brasas.length < 120)
+    brasas.push({ x: Math.random() * cb.width, y: cb.height * (0.6 + Math.random() * 1.2), v: 40 + Math.random() * 130, r: 1 + Math.random() * 2.6, f: Math.random() * 6 });
+  ctxB.globalCompositeOperation = 'lighter';
+  for (const b of brasas) {
+    b.y -= b.v * dt;
+    b.x += (Math.sin(T * 1.5 + b.f) * 30 + 14) * dt;
+    if (b.y < -10) { b.y = cb.height + 10; b.x = Math.random() * cb.width; }
+    ctxB.fillStyle = 'rgba(255,' + Math.floor(110 + b.f * 20) + ',40,' + (0.35 + 0.65 * Math.abs(Math.sin(T * 3 + b.f))) + ')';
+    ctxB.fillRect(b.x, b.y, b.r, b.r);
+  }
+}
+const vitrine = novaEntidade(CORES[0]);       // boneco de mostruário, em cima do bloco central
+vitrine.g.position.set(0, 2.2, 0);
+vitrine.g.visible = false;
+vitrine.st = 1;
+let vitrineArma = 0;
+
+function abrirLoadout() {
+  if (naTitulo) return;
+  fora = true; morto = true;
+  clearTimeout(timerNascer);
+  if (eu) eu.g.visible = false;
+  if (document.pointerLockElement) document.exitPointerLock();
+  document.body.classList.add('fora');
+  $('loadout').hidden = false;
+  vitrineArma = armaFixa() !== undefined ? armaFixa() : escolha.p;
+  desenharLoadout();
+}
+function desenharLoadout() {
+  const lista = (el, itens, sel, texto, aoEscolher) => {
+    el.innerHTML = '';
+    itens.forEach(([i, it]) => {
+      const b = document.createElement('button');
+      b.className = 'op' + (i === sel ? ' sel' : '');
+      b.innerHTML = '<b>' + (it.trancado && !liberado ? '🔒 ' : '') + it.nome + '</b><span>' + it.desc + '</span><span>' + texto(it) + '</span>';
+      b.onclick = () => { aoEscolher(i); desenharLoadout(); };
+      el.append(b);
+    });
+  };
+  const tArma = a => 'Dano ' + a.dano + (a.balas > 1 ? '×' + a.balas : '') + ' · ' + Math.round(60 / a.cad) + ' tiros/min · pente ' + a.pente;
+  const armas = s => ARMAS.map((a, i) => [i, a]).filter(x => x[1].slot === s);
+  lista($('lPers'), PERSONAGENS.map((p, i) => [i, p]).filter(x => !x[1].oculto), escolha.c, p => 'Vida ' + p.vida + ' · Velocidade ' + Math.round(p.vel * 100) + '%',
+    i => { if (!destrancar(i)) return; escolha.c = i; vitrineArma = armaFixa() !== undefined ? armaFixa() : escolha.p; });
+  if (armaFixa() !== undefined) {                 // classe especial: arma travada
+    lista($('lPrim'), [[armaFixa(), ARMAS[armaFixa()]]], armaFixa(), a => 'Dano ' + a.dano + ' · ' + (a.melee ? 'corpo a corpo' : 'teleguiado, explode em área') + ' · arma fixa da classe', () => {});
+    $('lSec').innerHTML = '<span style="font-size:12px;opacity:.7">Sem secundária.</span>';
+  } else {
+    lista($('lPrim'), armas(0), escolha.p, tArma, i => { escolha.p = i; vitrineArma = i; });
+    lista($('lSec'), armas(1), escolha.s, tArma, i => { escolha.s = i; vitrineArma = i; });
+  }
+  vitrine.cor = CORES[(Math.max(1, meuId) - 1) % CORES.length];
+  vitrine.c = -1;
+  vestir(vitrine, escolha.c, vitrineArma);
+}
+$('jogar').addEventListener('click', () => {
+  try { localStorage.setItem('fonterector', JSON.stringify(escolha)); } catch (e) {}
+  $('loadout').hidden = true;
+  document.body.classList.remove('fora');
+  fora = false;
+  nascer();
+  travarMouse();
+});
+function travarMouse() {
+  const p = tela.requestPointerLock();
+  if (p && p.catch) p.catch(() => {});
+}
+
+// ───────── Rede ─────────
+let ws = null, cheio = false;
+let sala = (new URLSearchParams(location.search).get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+const mandar = o => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
+const arr = (v, n) => v.toArray().map(x => +x.toFixed(n));
+function conectar() {             // só conecta depois de escolher a sala
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?sala=' + encodeURIComponent(sala));
+  ws.onclose = () => { if (!cheio) aviso('Desconectado — recarregue a página'); };
+  ws.onmessage = ev => {
+    const m = JSON.parse(ev.data);
+    if (m.b) m.id = m.b;      // mensagem de um bot, mandada pelo host em nome dele
+    tratar(m);
+  };
+}
+function novoOutro(id) {
+  const o = novaEntidade(id < 0 ? 0x9ca3af : CORES[(id - 1) % CORES.length]);
+  Object.assign(o, { alvo: new V3(), yaw: 0, morto: true, fora: true, k: 0, visto: false });
+  o.g.visible = false;
+  outros.set(id, o);
+  hud();
+  return o;
+}
+function tratar(m) {
+  if (m.t === 'cheio') {
+    ws.onclose = null;
+    $('loadout').hidden = true;
+    abrirSalas('Essa sala está cheia (máx. 5). Crie outra ou tente outro código.');
+    return;
+  }
+  if (m.t === 'quermodo') { if (souHost()) definirModo(m.v === 'ondas' ? 'ondas' : 'arcade'); return; }
+  if (m.t === 'modo') { const v = m.v === 'ondas' ? 'ondas' : 'arcade'; if (v !== modo) { modo = v; aplicarModo(); } return; }
+  if (m.t === 'reiniciar') { reiniciar(); return; }
+  if (m.t === 'basecaiu') { aviso('O FONTERECTOR CAIU\nVocês chegaram até a onda ' + (m.n | 0), 5000); return; }
+  if (m.t === 'querbot') { if (souHost()) mudarBots(m.d); return; }
+  if (m.t === 'oi') {
+    meuId = m.id;
+    eu = novaEntidade(CORES[(meuId - 1) % CORES.length]);
+    eu.g.visible = false;
+    if (!$('loadout').hidden) desenharLoadout();
+    nascer();
+    if (modoPendente) { modo = modoPendente; modoPendente = null; aplicarModo(); }   // criei a sala: o modo é o que escolhi
+    return;
+  }
+  if (m.t === 'saiu') {
+    // some quem saiu e os bots de outro PC (se o host deles continua, voltam no próximo pacote)
+    for (const [id, o] of outros)
+      if (id === m.id || (m.id > 0 && id < 0 && !o.bot)) { cena.remove(o.g); outros.delete(id); }
+    hud();
+    return;
+  }
+  const o = m.id === meuId ? eu : outros.get(m.id) || novoOutro(m.id);     // m.id === meuId: me acertei com a própria explosão
+  if (m.t === 'p') {
+    vestir(o, PERSONAGENS[m.c] ? m.c : 1, ARMAS[m.a] ? m.a : 0);   // tolera página antiga/pacote torto
+    if (!o.visto) { o.g.position.fromArray(m.p); o.visto = true; }
+    o.alvo.fromArray(m.p); o.yaw = m.r; o.pitch = m.x || 0; o.rec = !!m.rc; o.ag = !!m.g; o.em = m.em | 0;
+    if (m.id > 0 && m.id < meuId && m.md !== undefined) {       // quem tem id menor manda: modo, onda e vida do Fonterector
+      const v = m.md ? 'ondas' : 'arcade';
+      if (v !== modo) { modo = v; aplicarModo(); }
+      if ((m.on | 0) !== ondaN) { ondaN = m.on | 0; if (ondaN) aviso('ONDA ' + ondaN, 2500); hud(); }
+      if ((m.bv | 0) !== baseVida) { baseVida = m.bv | 0; hud(); }
+    }
+    if (m.m === 1 && !o.morto) o.tMorte = T;
+    o.morto = m.m !== 0; o.fora = m.m === 2;
+    o.st = m.m === 1 ? 4 : m.s || 0;
+    if (o.k !== m.k) { o.k = m.k; hud(); }
+    if (m.k >= META) vitoria(nome(m.id) + ' venceu!');
+  } else if (m.t === 'tiro') {
+    const de = new V3().fromArray(m.o), ai = ARMAS[m.a] ? m.a : 0;
+    for (const f of m.fs || []) { const p = new V3().fromArray(f); rastro(de, p); faisca(p); }     // só o desenho: o acerto vem em 'hit'
+    o.tTiro = T;
+    somTiro(ai, de);
+  } else if (m.t === 'missil') {
+    novoMissil(m.mid, m.id, new V3().fromArray(m.o), new V3().fromArray(m.d), m.al | 0);
+    o.tTiro = T;
+    somTiro(8, o.g.position);
+  } else if (m.t === 'boom') {
+    explosaoRemota(m.mid, new V3().fromArray(m.p));
+  } else if (m.t === 'hit' && m.to === meuId && !morto) {
+    vida -= m.dano; tDano = T;
+    vel.x += m.e[0]; vel.y += m.e[1]; vel.z += m.e[2];
+    $('dano').style.opacity = 1;
+    setTimeout(() => $('dano').style.opacity = 0, 120);
+    if (vida <= 0) {
+      morto = true; eu.tMorte = T;
+      mandar({ t: 'morri', by: m.id });
+      if (o.bot) o.k++;
+      feed(nome(m.id) + ' ☠ Você');
+      aviso(nome(m.id) + ' te pegou', 2000);
+      timerNascer = setTimeout(nascer, 2500);
+    }
+    hud();
+  } else if (m.t === 'hit' && (outros.get(m.to) || {}).bot) {
+    danoNoBot(m.to, outros.get(m.to), m);
+  } else if (m.t === 'morri') {
+    if (m.by !== meuId && m.id > -10) feed(nome(m.by) + ' ☠ ' + nome(m.id));     // zumbi morto não vai pro feed
+    if (m.by === meuId) {
+      abates++;
+      if (m.id > -10) feed('Você ☠ ' + nome(m.id));
+      hud();
+      if (abates >= META) vitoria('Você venceu!');
+    } else if ((outros.get(m.by) || {}).bot) {
+      outros.get(m.by).k++;
+      hud();
+    }
+  }
+}
+
+function vitoria(txt) {
+  if (modo !== 'arcade' || emFim || performance.now() < fimAte) return;
+  emFim = true;
+  aviso(txt);
+  setTimeout(() => {
+    abates = 0; emFim = false; fimAte = performance.now() + 1500;
+    for (const o of outros.values()) if (o.bot) o.k = 0;
+    aviso(''); nascer();
+  }, 4000);
+}
+
+// ───────── Controles ─────────
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;     // digitando o código da sala
+  if (!e.repeat && e.code === 'KeyT') emotar(1);
+  if (!e.repeat && e.code === 'KeyG') emotar(2);
+  if (!e.repeat && e.code === 'KeyH') emotar(3);
+  teclas[e.code] = true;
+  if (e.code === 'Space') e.preventDefault();
+  if (e.repeat) return;
+  if (e.code === 'Space') querPular = true;
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyE') querDash = true;
+  if (e.code === 'KeyR') recarregar();
+  if (e.code === 'Digit1') trocar(0);
+  if (e.code === 'Digit2') trocar(1);
+  if (e.code === 'KeyQ') trocar(1 - slot);
+  if (e.code === 'KeyL') abrirLoadout();
+  if (e.code === 'KeyB') pedirBot(1);
+  if (e.code === 'KeyN') pedirBot(-1);
+});
+addEventListener('keyup', e => teclas[e.code] = false);
+tela.addEventListener('mousedown', e => {
+  if (document.pointerLockElement !== tela) { travarMouse(); return; }
+  if (e.button === 0) atirando = true;
+  if (e.button === 2) { botaoDir = true; querDash = true; }
+});
+addEventListener('mouseup', e => {
+  if (e.button === 0) { atirando = false; gatilho = true; }
+  if (e.button === 2) botaoDir = false;
+});
+addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('wheel', () => trocar(1 - slot));
+document.addEventListener('pointerlockchange', () => {
+  const travado = document.pointerLockElement === tela;
+  if (!travado) { atirando = false; botaoDir = false; }
+  if (!fora) { if (travado) $('menu').hidden = true; else abrirMenu(); }     // soltou o mouse (Esc) = menu de pausa
+});
+addEventListener('mousemove', e => {
+  if (document.pointerLockElement !== tela) return;
+  const s = 0.0022 * camera.fov / 75;       // mirando = mouse mais lento
+  yaw -= e.movementX * s;
+  pitch = Math.max(-1.3, Math.min(1.3, pitch - e.movementY * s));
+});
+
+// ───────── Física ─────────
+function bate(p) {
+  for (const c of caixas)
+    if (p.x + RAIO > c.x0 && p.x - RAIO < c.x1 && p.z + RAIO > c.z0 && p.z - RAIO < c.z1 &&
+        p.y + ALTURA > c.y0 && p.y < c.y1) return true;
+  return false;
+}
+function dentroDeCaixa(p) {
+  for (const c of caixas)
+    if (p.x > c.x0 && p.x < c.x1 && p.z > c.z0 && p.z < c.z1 && p.y > c.y0 && p.y < c.y1) return true;
+  return false;
+}
+// move um corpo (jogador ou bot) com colisão eixo a eixo
+const DEGRAU = 0.36;              // até essa altura o corpo sobe sozinho (escada, meio-fio)
+function caixaEm(p) {
+  for (const c of caixas)
+    if (p.x + RAIO > c.x0 && p.x - RAIO < c.x1 && p.z + RAIO > c.z0 && p.z - RAIO < c.z1 &&
+        p.y + ALTURA > c.y0 && p.y < c.y1) return c;
+  return null;
+}
+function andar(p, v, dt) {
+  let chao = false, travou = false;
+  for (const eixo of ['x', 'z']) {                     // um eixo por vez: bateu num, desliza no outro
+    p[eixo] += v[eixo] * dt;
+    const c = caixaEm(p);
+    if (!c) continue;
+    const sobe = c.y1 - p.y;
+    if (sobe > 0 && sobe <= DEGRAU && v.y <= 0.01) {   // obstáculo baixo: sobe em vez de bater
+      const y0 = p.y;
+      p.y = c.y1 + 0.001;
+      if (!caixaEm(p)) continue;
+      p.y = y0;
+    }
+    p[eixo] -= v[eixo] * dt; v[eixo] = 0; travou = true;
+  }
+  p.y += v.y * dt;
+  if (p.y <= 0) { p.y = 0; v.y = 0; chao = true; }
+  else {
+    const c = caixaEm(p);
+    if (c) {
+      if (v.y < 0 && c.y1 - p.y < 0.7) { p.y = c.y1 + 0.001; chao = true; }   // pousou em cima
+      else p.y -= v.y * dt;                                                   // bateu a cabeça
+      v.y = 0;
+    }
+  }
+  return { chao, travou };
+}
+function mover(dt) {
+  const P = PERSONAGENS[escolha.c], A = ARMAS[armaIdx()];
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  const a = (teclas.KeyW ? 1 : 0) - (teclas.KeyS ? 1 : 0);
+  const l = (teclas.KeyD ? 1 : 0) - (teclas.KeyA ? 1 : 0);
+  if (emote && (a || l || querPular || atirando || querDash || T > tEmoteFim)) emote = 0;   // mexeu, o emote para
+  agachado = !!teclas.KeyC && noChao;       // segurar C (Ctrl não: Ctrl+W fecha a aba do navegador)
+  mirando = botaoDir && tRec <= 0 && tTroca <= 0 && !P.dash;
+  correndo = !!(teclas.ShiftLeft || teclas.ShiftRight) && a > 0 && !mirando && !atirando && noChao && !P.dash && !agachado;
+  const v = VEL * P.vel * A.mob * (agachado || mirando ? 0.5 : correndo ? 1.5 : 1);
+  let wx = fx * a - fz * l, wz = fz * a + fx * l;
+  const n = Math.hypot(wx, wz) || 1;
+  wx = wx / n * v; wz = wz / n * v;
+  const k = 1 - Math.exp(-(noChao ? 12 : 1.2) * dt);   // no ar quase não muda de direção
+  vel.x += (wx - vel.x) * k; vel.z += (wz - vel.z) * k;
+  if (P.dash) {                                         // investida: 0,16s a 26 m/s na direção que anda (ou olha)
+    if (querDash && T - tDash > DASH_CD) {
+      tDash = T;
+      const m = Math.hypot(wx, wz);
+      dashDir.set(m > 0.1 ? wx / m : fx, 0, m > 0.1 ? wz / m : fz);
+      som(300, 0.25, 0.12);
+    }
+    if (T - tDash < 0.16) { vel.x = dashDir.x * 26; vel.z = dashDir.z * 26; vel.y = Math.max(vel.y, 0); }
+  }
+  querDash = false;
+  if (querPular) tPulo = T;                             // guarda o aperto por 0,12 s: apertou um tico antes de pousar, pula
+  if (T - tPulo < 0.12 && noChao && vel.y <= 0.5) { vel.y = PULO; tPulo = -9; tChao = -9; noChao = false; }                // um pulo por aperto: sem bunny hop
+  querPular = false;
+  vel.y -= GRAV * dt;
+  const vy = vel.y;
+  if (andar(pos, vel, dt).chao) {
+    if (T - tChao > 0.25 && vy < -7) baque = Math.min(0.3, -vy * 0.02);     // pousou de uma queda: a câmera afunda
+    tChao = T;
+  }
+  noChao = T - tChao < 0.1;                             // 0,1 s de tolerância: descer escada ou sair da beirada ainda conta como chão
+}
+
+// ───────── Armas ─────────
+function recarregar() {
+  const A = ARMAS[armaIdx()];
+  if (morto || tRec > 0 || municao[slot] >= A.pente) return;
+  tRec = A.rec;
+  som(500, 0.06, 0.05, 'square');
+  hud();
+}
+function trocar(s) {
+  if (morto || s === slot || armaFixa() !== undefined) return;
+  slot = s; tRec = 0; tTroca = 0.45;
+  vestir(eu, escolha.c, armaIdx());
+  montarVM();
+  hud();
+}
+function armas(dt) {
+  const A = ARMAS[armaIdx()];
+  tCad -= dt; tTroca -= dt;
+  bloom *= Math.exp(-7 * dt);                           // a rajada "fecha" de novo em uma fração de segundo
+  if (recuo > 0.0005 && T - tUltTiro > 0.16) {          // soltou o gatilho: a mira desce o que o coice subiu
+    const r = recuo * (1 - Math.exp(-9 * dt));
+    pitch -= r; recuo -= r;
+  }
+  if (A.melee) {
+    if (atirando && tCad <= 0) { tCad = A.cad; golpear(A); }
+    return;
+  }
+  if (tRec > 0) {
+    tRec -= dt;
+    if (tRec <= 0) { municao[slot] = A.pente; hud(); }
+    return;
+  }
+  if (tTroca > 0) return;
+  if (municao[slot] <= 0) { recarregar(); return; }
+  if (atirando && tCad <= 0 && (A.auto || gatilho)) {
+    gatilho = false; tCad = A.cad; municao[slot]--;
+    atirar(A);
+    hud();
+  }
+}
+function golpear(A) {         // katana: acerta quem estiver perto, na frente e sem parede no meio
+  eu.tTiro = T;
+  som(A.som, 0.14, 0.12, 'triangle');
+  mandar({ t: 'tiro', a: armaIdx(), o: arr(pos, 2), ds: [] });   // sem balas: só avisa pros outros animarem o corte
+  $('corte').animate([
+    { opacity: 1, transform: 'rotate(-28deg) translateX(34vmin) scaleX(.3)' },
+    { opacity: 0.9, transform: 'rotate(-28deg) translateX(-6vmin) scaleX(1.2)' },
+    { opacity: 0, transform: 'rotate(-28deg) translateX(-32vmin) scaleX(1.4)' }], { duration: 190 });
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  for (const [id, o] of outros) {
+    if (o.morto || (modo === 'ondas' && id > 0)) continue;      // no modo de defesa não se fere aliado
+    const dx = o.g.position.x - pos.x, dz = o.g.position.z - pos.z, d = Math.hypot(dx, dz) || 1;
+    if (d > A.alcance || Math.abs(o.g.position.y - pos.y) > 2.2 || (dx * fx + dz * fz) / d < 0.45 || !visivel(pos, o.g.position)) continue;
+    const m = { t: 'hit', to: id, dano: A.dano, e: [fx * A.emp, 1.5, fz * A.emp] };
+    marcador(false);
+    if (o.bot) danoNoBot(id, o, { ...m, id: meuId }); else mandar(m);
+  }
+}
+function espalhar(base, esp, n) {
+  const ds = [];
+  for (let i = 0; i < n; i++) {
+    const d = base.clone();
+    d.x += (Math.random() - 0.5) * 2 * esp; d.y += (Math.random() - 0.5) * 2 * esp; d.z += (Math.random() - 0.5) * 2 * esp;
+    ds.push(d.normalize());
+  }
+  return ds;
+}
+// Tiro instantâneo: em vez de uma bala voando, traça uma linha e vê o que ela encontra primeiro.
+// raioCaixa = distância até a linha entrar numa caixa (ou Infinity se não entra).
+function raioCaixa(o, d, x0, x1, y0, y1, z0, z1) {
+  let t0 = 0, t1 = Infinity;
+  for (const [oo, dd, a, b] of [[o.x, d.x, x0, x1], [o.y, d.y, y0, y1], [o.z, d.z, z0, z1]]) {
+    if (Math.abs(dd) < 1e-9) { if (oo < a || oo > b) return Infinity; continue; }
+    let ta = (a - oo) / dd, tb = (b - oo) / dd;
+    if (ta > tb) { const x = ta; ta = tb; tb = x; }
+    if (ta > t0) t0 = ta;
+    if (tb < t1) t1 = tb;
+    if (t0 > t1) return Infinity;
+  }
+  return t0;
+}
+function tracar(o, d, dono) {     // primeiro obstáculo ou boneco na linha: { t, quem, ponto, cabeca }
+  let t = d.y < -1e-6 ? Math.min(150, -o.y / d.y) : 150, quem = 0, base = 0, baixo = false;
+  for (const c of caixas) { const tc = raioCaixa(o, d, c.x0, c.x1, c.y0, c.y1, c.z0, c.z1); if (tc < t) t = tc; }
+  const testar = (id, p, ag) => {
+    const tb = raioCaixa(o, d, p.x - 0.45, p.x + 0.45, p.y, p.y + (ag ? 1.55 : 2), p.z - 0.45, p.z + 0.45);
+    if (tb < t) { t = tb; quem = id; base = p.y; baixo = !!ag; }
+  };
+  const deBot = dono !== meuId;
+  if (deBot && !morto) testar(meuId, pos, agachado);
+  for (const [id, x] of outros) {
+    if (id === dono || x.morto || (deBot && id < 0) || (modo === 'ondas' && id > 0)) continue;   // bot não fere bot; na defesa não se fere aliado
+    testar(id, x.g.position, x.ag);
+  }
+  const ponto = o.clone().addScaledVector(d, t);
+  return { t, quem, ponto, cabeca: !!quem && ponto.y - base > (baixo ? 1.22 : 1.66) };
+}
+function ferir(dono, quem, m) {   // entrega um acerto decidido por mim (meu tiro ou de um bot meu)
+  if (dono !== meuId) m.b = dono;
+  if (quem === meuId) { tratar({ ...m, id: dono }); return; }
+  const alvo = outros.get(quem);
+  if (alvo && alvo.bot) danoNoBot(quem, alvo, { ...m, id: dono }); else mandar(m);
+}
+function disparar(dono, o, ds, ai, boca) {
+  const A = ARMAS[ai], f = dono === meuId ? 1 : 0.6, fs = [];       // bot bate mais fraco
+  for (const d of ds) {
+    const r = tracar(o, d, dono);
+    fs.push(arr(r.ponto, 1));
+    rastro(boca || o, r.ponto);
+    if (!r.quem) { faisca(r.ponto); continue; }
+    const g = aoAcertar(A, r.t, r.cabeca);
+    if (dono === meuId) marcador(r.cabeca, g.dano);
+    ferir(dono, r.quem, { t: 'hit', to: r.quem, dano: g.dano * f, e: [d.x * g.empurrao * f, g.empurrao * 0.3 * f, d.z * g.empurrao * f] });
+  }
+  const msg = { t: 'tiro', a: ai, o: arr(boca || o, 2), fs };       // os outros só desenham os rastros
+  if (dono !== meuId) msg.b = dono;
+  mandar(msg);
+}
+function atirar(A) {
+  const dir = new V3(0, 0, -1).applyQuaternion(camera.quaternion), o = camera.position.clone();
+  const boca = new V3(0.16 * (1 - mAds), -0.12, -0.7).applyQuaternion(camera.quaternion).add(o);
+  if (A.missil) lancarMissil(boca, dir);
+  else {
+    // 1º tiro quase reto; o espalhamento só abre andando, no ar ou em rajada longa (bloom)
+    const andando = Math.hypot(vel.x, vel.z) > 1;
+    const esp = ((mirando ? A.ads : A.hip * (andando ? 1.5 : 1) * (noChao ? 1 : 2.5)) + bloom * (mirando ? 0.35 : 1)) * (agachado ? 0.6 : 1);
+    disparar(meuId, o, espalhar(dir, esp, A.balas), armaIdx(), boca);
+    bloom = Math.min(0.06, bloom + A.bloom);
+  }
+  // coice: a mira sobe e balança; o que subiu volta sozinho quando você solta o gatilho (em armas())
+  const k = A.coice * (mirando ? 0.7 : 1) * (agachado ? 0.8 : 1);
+  pitch = Math.min(1.3, pitch + k);
+  recuo += k;
+  yaw += (Math.random() - 0.5) * k * 0.5;
+  tUltTiro = T; eu.tTiro = T; vmCoice = 1;
+  somTiro(armaIdx());
+}
+
+// ───────── Bots (quem simula é o host = menor id na sala) ─────────
+const MAX_BOTS = 4;
+function souHost() {
+  for (const id of outros.keys()) if (id > 0 && id < meuId) return false;
+  return true;
+}
+function pedirBot(d) {
+  if (naTitulo || !ws || modo === 'ondas') return;
+  if (souHost()) mudarBots(d); else mandar({ t: 'querbot', d });
+}
+function mudarBots(d) {
+  const meus = [...outros.keys()].filter(id => id < 0 && id > -10).sort((a, b) => b - a);   // -1, -2, ...
+  if (d > 0 && meus.length < MAX_BOTS) {
+    let id = -1;
+    while (outros.has(id)) id--;
+    const o = novoOutro(id);
+    o.bot = { pos: new V3(), vel: new V3(), vida: 100, chao: false, travou: false, recarga: 1, troca: 0, lado: 1, renasce: 0 };
+    vestir(o, Math.floor(Math.random() * 3), Math.floor(Math.random() * 4));   // bots não usam a classe especial
+    o.fora = false;
+    nascerBot(o);
+  } else if (d < 0 && meus.length) {
+    const id = meus[meus.length - 1];
+    cena.remove(outros.get(id).g);
+    outros.delete(id);
+    mandar({ t: 'saiu', b: id });
+  }
+  hud();
+}
+function nascerBot(o) {
+  const [x, z] = SPAWNS[Math.floor(Math.random() * SPAWNS.length)];
+  o.bot.pos.set(x, 0, z); o.bot.vel.set(0, 0, 0);
+  o.bot.vida = PERSONAGENS[o.c].vida; o.morto = false;
+}
+function danoNoBot(id, o, m) {
+  if (o.morto) return;
+  const b = o.bot;
+  b.vida -= m.dano;
+  b.vel.x += m.e[0]; b.vel.y += m.e[1]; b.vel.z += m.e[2];
+  if (b.vida <= 0) {
+    o.morto = true; o.tMorte = T; b.renasce = 2.5; b.some = 2.2;
+    mandar({ t: 'morri', b: id, by: m.id });
+    tratar({ t: 'morri', id, by: m.id });
+  }
+}
+function visivel(a, b) {          // nenhuma caixa entre os dois pontos?
+  const p = new V3(a.x, a.y + 1.3, a.z);
+  const d = new V3(b.x, b.y + 1, b.z).sub(p);
+  const n = Math.ceil(d.length());
+  d.divideScalar(n);
+  for (let i = 0; i < n; i++) { p.add(d); if (dentroDeCaixa(p)) return false; }
+  return true;
+}
+function pensarBot(id, o, dt) {
+  const b = o.bot, P = PERSONAGENS[o.c], A = ARMAS[o.a];
+  if (o.morto) { b.renasce -= dt; if (b.renasce <= 0) nascerBot(o); return; }
+  if (o.k >= META) vitoria(nome(id) + ' venceu!');
+  // alvo = humano vivo mais perto
+  let alvo = null, dist = 1e9;
+  if (!morto) { alvo = pos; dist = pos.distanceTo(b.pos); }
+  for (const [oid, x] of outros) {
+    if (oid < 0 || x.morto) continue;
+    const d = x.g.position.distanceTo(b.pos);
+    if (d < dist) { dist = d; alvo = x.g.position; }
+  }
+  b.troca -= dt;
+  if (b.troca <= 0) { b.troca = 0.8 + Math.random() * 1.4; b.lado = Math.random() < 0.5 ? -1 : 1; }
+  let wx = 0, wz = 0;
+  if (alvo) {
+    const dx = (alvo.x - b.pos.x) / (dist || 1), dz = (alvo.z - b.pos.z) / (dist || 1);
+    o.yaw = Math.atan2(-dx, -dz);
+    const longe = o.a === 3 ? 26 : o.a === 0 ? 14 : 8;         // cada arma tem sua distância
+    const frente = dist > longe ? 1 : dist < longe * 0.45 ? -1 : 0;
+    wx = dx * frente - dz * b.lado; wz = dz * frente + dx * b.lado;   // + ficar rodeando
+    const n = Math.hypot(wx, wz) || 1, v = VEL * P.vel * 0.9;
+    wx = wx / n * v; wz = wz / n * v;
+    b.recarga -= dt;
+    if (b.recarga <= 0 && visivel(b.pos, alvo)) {
+      b.recarga = A.auto ? A.cad * 3 : A.cad * 1.4;
+      const de = new V3(b.pos.x + dx * 0.75, b.pos.y + 1.3, b.pos.z + dz * 0.75);
+      const d = new V3(alvo.x, alvo.y + 1, alvo.z).sub(de).normalize();
+      o.pitch = Math.asin(d.y);
+      disparar(id, de, espalhar(d, A.hip + 0.05, A.balas), o.a);
+      o.tTiro = T;
+      somTiro(o.a, de);
+    }
+  }
+  const k = 1 - Math.exp(-(b.chao ? 10 : 1.2) * dt);
+  b.vel.x += (wx - b.vel.x) * k; b.vel.z += (wz - b.vel.z) * k;
+  if (b.chao && b.travou) b.vel.y = PULO;            // só pula se travar em algo
+  b.vel.y -= GRAV * dt;
+  const r = andar(b.pos, b.vel, dt);
+  b.chao = r.chao; b.travou = r.travou;
+  o.st = !b.chao ? 3 : Math.hypot(b.vel.x, b.vel.z) > 0.8 ? 1 : 0;
+}
+
+// ───────── Salas ─────────
+// Cada sala é um código (?sala=ABCD no endereço). Quem cria escolhe o modo; quem entra herda do host.
+let modoCriar = 'arcade', modoPendente = null;
+function abrirSalas(msg) {
+  $('salasMsg').textContent = msg || '';
+  $('salas').hidden = false;
+}
+$('salas').addEventListener('click', e => {
+  const b = e.target.closest('[data-modo]');
+  if (!b) return;
+  modoCriar = b.dataset.modo;
+  document.querySelectorAll('#salas [data-modo]').forEach(x => x.classList.toggle('sel', x === b));
+});
+$('criarSala').addEventListener('click', () => {
+  let cod = '';
+  for (let i = 0; i < 4; i++) cod += 'ABCDEFGHJKMNPQRSTUVWXYZ'[Math.floor(Math.random() * 23)];
+  entrarNaSala(cod, modoCriar);
+});
+$('entrarSala').addEventListener('click', () => {
+  const cod = $('codigoSala').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (cod) entrarNaSala(cod, null); else $('salasMsg').textContent = 'Digite o código da sala';
+});
+function entrarNaSala(cod, modoInicial) {
+  sala = cod.slice(0, 8);
+  modoPendente = modoInicial;
+  try { history.replaceState(null, '', '?sala=' + sala); } catch (e) {}   // o endereço da barra vira o link da sala
+  $('salas').hidden = true;
+  conectar();
+  abrirLoadout();
+}
+
+// ───────── Menu da partida (Esc) ─────────
+const NOME_MODO = { arcade: 'ARCADE — todos contra todos', ondas: 'DEFENDER O FONTERECTOR' };
+function abrirMenu() {
+  if (fora || naTitulo) return;
+  $('menuSala').textContent = 'SALA ' + sala + '  ·  ' + NOME_MODO[modo];
+  $('bModo').textContent = 'Trocar modo para: ' + NOME_MODO[modo === 'ondas' ? 'arcade' : 'ondas'];
+  $('menu').hidden = false;
+  atirando = false;
+}
+$('menu').addEventListener('click', e => {
+  const a = e.target.dataset.a;
+  if (!a) return;
+  if (a === 'link') {
+    if (navigator.clipboard) navigator.clipboard.writeText(location.href).then(() => e.target.textContent = 'Link copiado!', () => {});
+    return;
+  }
+  $('menu').hidden = true;
+  if (a === 'classe') { abrirLoadout(); return; }
+  if (a === 'reiniciar') { mandar({ t: 'reiniciar' }); reiniciar(); }
+  if (a === 'modo') pedirModo(modo === 'ondas' ? 'arcade' : 'ondas');
+  travarMouse();
+});
+function reiniciar() {
+  abates = 0;
+  for (const o of outros.values()) if (o.bot) o.k = 0;
+  if (modo === 'ondas' && souHost()) reiniciarOndas();
+  clearTimeout(timerNascer);
+  nascer();
+  aviso('Partida reiniciada', 1500);
+}
+
+// ───────── Modos ─────────
+function pedirModo(v) {
+  if (souHost()) definirModo(v); else mandar({ t: 'quermodo', v });
+}
+function definirModo(v) {         // só o host: limpa bots e zumbis e avisa a sala
+  modo = v;
+  for (const [id, o] of outros) if (o.bot) { cena.remove(o.g); outros.delete(id); mandar({ t: 'saiu', b: id }); }
+  onda.n = 0; onda.faltam = 0; onda.pausa = 4; onda.base = 100;
+  ondaN = 0; baseVida = 100;
+  mandar({ t: 'modo', v });
+  aplicarModo();
+}
+function aplicarModo() {
+  monumento.visible = modo === 'ondas';
+  abates = 0;
+  aviso(modo === 'ondas' ? 'DEFENDER O FONTERECTOR\nNão deixe os zumbis derrubarem o Fonterector, no centro' : 'MODO ARCADE', 3500);
+  hud();
+}
+
+// ───────── Defender o Fonterector: ondas de zumbis. Quem simula é o host. ─────────
+const onda = { n: 0, faltam: 0, tSpawn: 0, pausa: 4, base: 100 };
+const MAX_ZUMBIS = 12;
+const monumento = new THREE.Group();          // o Fonterector: obelisco dourado com um facho de luz
+monumento.add(cx(1.1, 0.4, 1.1, M(0x8a6a12), 0, 2.4, 0), cx(0.7, 3.2, 0.7, M(0xd4a017), 0, 4.2, 0), cx(0.9, 0.3, 0.9, M(0xffd95a), 0, 5.95, 0));
+const facho = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 40, 8, 1, true),
+  new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false }));
+facho.position.y = 26;
+monumento.add(facho);
+monumento.visible = false;
+cena.add(monumento);
+
+function nascerZumbi() {          // reaproveita um zumbi já caído, senão cria (até MAX_ZUMBIS)
+  let z = null;
+  for (const o of outros.values()) if (o.bot && o.bot.zumbi && o.fora) { z = o; break; }
+  if (!z) {
+    let id = -10;
+    while (outros.has(id)) id--;
+    if (id < -9 - MAX_ZUMBIS) return false;
+    z = novoOutro(id);
+    z.bot = { zumbi: true, pos: new V3(), vel: new V3(), vida: 1, chao: false, travou: false, recarga: 0, desvio: 0, lado: 1, some: 0 };
+    vestir(z, 4, 7);
+  }
+  for (let i = 0; i < 12; i++) {                         // nasce na borda da arena, fora de qualquer caixa
+    const lado = Math.floor(Math.random() * 4), k = (Math.random() * 2 - 1) * (ARENA - 3), b = ARENA - 2;
+    z.bot.pos.set(lado < 2 ? k : lado === 2 ? -b : b, 0, lado < 2 ? (lado === 0 ? -b : b) : k);
+    if (!bate(z.bot.pos)) break;
+  }
+  z.bot.lado = Math.random() < 0.5 ? -1 : 1;             // lado que este zumbi contorna os obstáculos
+  z.bot.vel.set(0, 0, 0);
+  z.bot.vida = 55 + onda.n * 8;
+  z.morto = false; z.fora = false;
+  return true;
+}
+function reiniciarOndas() {
+  for (const o of outros.values()) if (o.bot && o.bot.zumbi) { o.morto = true; o.fora = true; }
+  onda.n = 0; onda.faltam = 0; onda.pausa = 4; onda.base = 100;
+  ondaN = 0; baseVida = 100;
+  hud();
+}
+function gerirOndas(dt) {
+  let vivos = 0;
+  for (const o of outros.values()) if (o.bot && o.bot.zumbi && !o.morto) vivos++;
+  if (onda.base <= 0) {                                  // caiu: espera um pouco e recomeça da onda 1
+    onda.pausa -= dt;
+    if (onda.pausa <= 0) reiniciarOndas();
+  } else if (onda.faltam === 0 && vivos === 0) {         // onda limpa: respiro e vem a próxima, maior
+    onda.pausa -= dt;
+    if (onda.pausa <= 0) {
+      onda.n++; onda.faltam = 4 + onda.n * 2; onda.pausa = 5; ondaN = onda.n;
+      aviso('ONDA ' + onda.n, 2500);
+      hud();
+    }
+  } else if (onda.faltam > 0 && vivos < MAX_ZUMBIS) {
+    onda.tSpawn -= dt;
+    if (onda.tSpawn <= 0) { onda.tSpawn = 0.7; if (nascerZumbi()) onda.faltam--; }
+  }
+}
+function pensarZumbi(id, o, dt) {
+  const b = o.bot;
+  if (o.fora) return;
+  if (o.morto) { b.some -= dt; if (b.some <= 0) o.fora = true; return; }
+  // alvo: humano vivo a menos de 9 m; senão, o Fonterector (centro)
+  let alvoH = null, idH = 0, dH = 9;
+  if (!morto) { const d = Math.hypot(pos.x - b.pos.x, pos.z - b.pos.z); if (d < dH) { dH = d; alvoH = pos; idH = meuId; } }
+  for (const [oid, x] of outros) {
+    if (oid < 0 || x.morto) continue;
+    const d = Math.hypot(x.g.position.x - b.pos.x, x.g.position.z - b.pos.z);
+    if (d < dH) { dH = d; alvoH = x.g.position; idH = oid; }
+  }
+  let dx = (alvoH ? alvoH.x : 0) - b.pos.x, dz = (alvoH ? alvoH.z : 0) - b.pos.z;
+  const d = Math.hypot(dx, dz) || 1;
+  dx /= d; dz /= d;
+  o.yaw = Math.atan2(-dx, -dz);
+  const naBase = !alvoH && Math.max(Math.abs(b.pos.x), Math.abs(b.pos.z)) < 3.5;
+  const perto = !!alvoH && dH < 1.5;
+  b.recarga -= dt;
+  if ((naBase || perto) && b.recarga <= 0) {             // ataca
+    b.recarga = 0.9;
+    o.tTiro = T;
+    mandar({ t: 'tiro', b: id, a: 7, o: arr(b.pos, 2), ds: [] });       // sem balas: só pros outros animarem o tapa
+    if (perto) {
+      const m = { t: 'hit', to: idH, dano: 14, e: [dx * 3, 1, dz * 3] };
+      if (idH === meuId) tratar({ ...m, id }); else mandar({ ...m, b: id });
+    } else if (onda.base > 0) {
+      onda.base -= 4;
+      baseVida = Math.max(0, Math.round(onda.base));
+      hud();
+      if (onda.base <= 0) { onda.pausa = 6; mandar({ t: 'basecaiu', n: onda.n }); tratar({ t: 'basecaiu', n: onda.n }); }
+    }
+  }
+  // anda reto pro alvo; se travar numa caixa, pula e desvia de lado por um tempo
+  b.desvio -= dt;
+  if (b.travou && b.desvio <= 0) b.desvio = 1.6;         // sempre pro mesmo lado: assim ele contorna prédio em vez de ficar indo e voltando
+  let wx = dx, wz = dz;
+  if (b.desvio > 0) { wx = dx * 0.3 - dz * b.lado; wz = dz * 0.3 + dx * b.lado; }
+  const v = naBase || perto ? 0 : Math.min(4.6, 2.2 + onda.n * 0.2), n = Math.hypot(wx, wz) || 1;
+  const k = 1 - Math.exp(-8 * dt);
+  b.vel.x += (wx / n * v - b.vel.x) * k; b.vel.z += (wz / n * v - b.vel.z) * k;
+  if (b.chao && b.travou && !naBase) b.vel.y = PULO;
+  b.vel.y -= GRAV * dt;
+  const r = andar(b.pos, b.vel, dt);
+  b.chao = r.chao; b.travou = r.travou;
+  o.st = !b.chao ? 3 : Math.hypot(b.vel.x, b.vel.z) > 0.5 ? 1 : 0;
+}
+
+// ───────── Emotes ─────────
+function emotar(n) {              // 1 aceno · 2 passinho do Jamal · 3 bíceps
+  if (morto || fora) return;
+  emote = n;
+  tEmoteFim = T + [0, 2.5, 1e9, 3][n];      // o passinho só para quando você se mexe
+}
+
+// ───────── Efeitos: rastros, faíscas, fumaça, explosões e mísseis ─────────
+const fx = [];                    // efeitos temporários: { o, t, dur, passo(k de 0 a 1, dt) }
+const tmp = new V3(), EIXO_Y = new V3(0, 1, 0);
+function efeito(o, dur, passo) { cena.add(o); fx.push({ o, t: 0, dur, passo }); return o; }
+const brilho = (cor, op) => new THREE.SpriteMaterial({ map: texChama, color: cor, transparent: true, opacity: op === undefined ? 1 : op, blending: THREE.AdditiveBlending, depthWrite: false });
+const geoRastro = new THREE.BoxGeometry(0.035, 0.035, 1);
+function rastro(a, b) {
+  const d = a.distanceTo(b);
+  if (d < 0.6) return;
+  const m = new THREE.Mesh(geoRastro, new THREE.MeshBasicMaterial({ color: 0xfff1a8, transparent: true, opacity: 0.9 }));
+  m.position.copy(a).lerp(b, 0.5);
+  m.lookAt(b);
+  m.scale.z = d;
+  efeito(m, 0.07, k => { m.material.opacity = 0.9 * (1 - k); });
+}
+function faisca(p) {
+  const s = new THREE.Sprite(brilho(0xffd27a));
+  s.position.copy(p);
+  efeito(s, 0.12, k => { s.scale.setScalar(0.35 + k * 0.5); s.material.opacity = 1 - k; });
+}
+function fumaca(p, tam) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChama, color: 0xa3a3a3, transparent: true, opacity: 0.5, depthWrite: false }));
+  s.position.copy(p);
+  efeito(s, 0.9, (k, dt) => { s.scale.setScalar((tam || 0.4) + k * 1.6); s.material.opacity = 0.5 * (1 - k); s.position.y += 0.5 * dt; });
+}
+const luzBoom = new THREE.PointLight(0xffa64d, 0, 32);
+cena.add(luzBoom);
+function efeitoExplosao(p) {
+  const onda1 = (cor, raio, dur) => {
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshBasicMaterial({ color: cor, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    m.position.copy(p);
+    efeito(m, dur, k => { m.scale.setScalar(0.5 + k * raio); m.material.opacity = 1 - k * k; });
+  };
+  onda1(0xff8a1f, 4.6, 0.42); onda1(0xfff3c4, 2.2, 0.2);            // bola de fogo e miolo branco
+  for (let i = 0; i < 16; i++) {                                    // estilhaços caindo com gravidade
+    const s = new THREE.Sprite(brilho(0xffb347)), v = new V3(Math.random() - 0.5, Math.random() * 0.9, Math.random() - 0.5).normalize().multiplyScalar(6 + Math.random() * 9);
+    s.position.copy(p); s.scale.setScalar(0.3);
+    efeito(s, 0.5 + Math.random() * 0.4, (k, dt) => { v.y -= 16 * dt; s.position.addScaledVector(v, dt); s.material.opacity = 1 - k; });
+  }
+  for (let i = 0; i < 7; i++) fumaca(tmp.set(p.x + (Math.random() - 0.5) * 2, p.y + Math.random(), p.z + (Math.random() - 0.5) * 2), 1.2);
+  luzBoom.position.copy(p); luzBoom.intensity = 6;
+  const d = p.distanceTo(pos), v = Math.max(0, 1 - d / 85);
+  tremor = Math.max(tremor, 0.6 * Math.max(0, 1 - d / 26));         // treme a câmera de quem está perto
+  ruido(1.1, 500, 0.9 * v); som(62, 0.9, 0.7 * v, 'sine');
+}
+
+// Mísseis: o dono simula o voo e decide onde explode; os outros só desenham e esperam o aviso ("boom").
+const misseis = [];
+let proxMissil = 1, modeloMissil = null;
+if (gltf) gltf.load('assets/kit/bullet-foam-tip-thick.glb', g => {    // dardo do Kenney Blaster Kit (CC0), ampliado
+  g.scene.scale.setScalar(12);
+  g.scene.position.y = -0.3;
+  modeloMissil = new THREE.Group();
+  modeloMissil.add(g.scene);
+}, undefined, () => {});
+function novoMissil(id, dono, o, d, alvo) {
+  const m = modeloMissil ? modeloMissil.clone() : cx(0.12, 0.5, 0.12, M(0xd4d4d8), 0, 0, 0);
+  const chama = new THREE.Sprite(brilho(0xffa64d));
+  chama.position.y = -0.35; chama.scale.setScalar(0.7);
+  m.add(chama);
+  cena.add(m);
+  misseis.push({ id, dono, m, p: o.clone(), d: d.clone().normalize(), v: 12, alvo, t: 0, fum: 0 });
+}
+function lancarMissil(o, d) {
+  const id = meuId * 1000 + proxMissil++ % 1000;
+  novoMissil(id, meuId, o, d, alvoTravado);
+  mandar({ t: 'missil', mid: id, o: arr(o, 2), d: arr(d, 3), al: alvoTravado });
+}
+function tirarMissil(i) { cena.remove(misseis[i].m); misseis.splice(i, 1); }
+function explodir(p, ms) {        // só o dono: efeito, aviso e dano em área (cai com a distância)
+  efeitoExplosao(p);
+  mandar({ t: 'boom', mid: ms.id, p: arr(p, 1) });
+  const A = ARMAS[8], R = 5.5;
+  const atingir = (id, a, fator) => {
+    const d = Math.hypot(a.x - p.x, a.y + 1 - p.y, a.z - p.z);
+    if (d > R) return;
+    const k = 1 - d / R, n = Math.hypot(a.x - p.x, a.z - p.z) || 1, dano = A.dano * (0.35 + 0.65 * k) * fator;
+    if (id !== meuId) marcador(false, dano);
+    ferir(meuId, id, { t: 'hit', to: id, dano, e: [(a.x - p.x) / n * A.emp * k, 3 * k, (a.z - p.z) / n * A.emp * k] });
+  };
+  if (!morto) atingir(meuId, pos, 0.5);                             // também me machuca se eu estiver perto
+  for (const [id, o] of outros) if (!o.morto && !(modo === 'ondas' && id > 0)) atingir(id, o.g.position, 1);
+}
+function explosaoRemota(mid, p) {
+  const i = misseis.findIndex(x => x.id === mid);
+  if (i >= 0) tirarMissil(i);
+  efeitoExplosao(p);
+}
+function atualizarTrava() {       // alvo do míssil: o inimigo visível mais perto do centro da mira
+  const el = $('trava');
+  alvoTravado = 0;
+  if (morto || fora || !eu || !ARMAS[armaIdx()].missil) { el.style.display = 'none'; return; }
+  const f = new V3(0, 0, -1).applyQuaternion(camera.quaternion);
+  let melhor = 0.93, p = null;
+  for (const [id, o] of outros) {
+    if (o.morto || (modo === 'ondas' && id > 0)) continue;
+    tmp.set(o.g.position.x, o.g.position.y + 1.1, o.g.position.z).sub(camera.position);
+    if (tmp.length() > 75) continue;
+    const c = tmp.normalize().dot(f);
+    if (c > melhor && visivel(pos, o.g.position)) { melhor = c; alvoTravado = id; p = o.g.position; }
+  }
+  if (!alvoTravado) { el.style.display = 'none'; return; }
+  tmp.set(p.x, p.y + 1.1, p.z).project(camera);
+  el.style.display = 'block';
+  el.style.left = (tmp.x * 0.5 + 0.5) * innerWidth + 'px';
+  el.style.top = (-tmp.y * 0.5 + 0.5) * innerHeight + 'px';
+}
+function moverTiros(dt) {
+  for (let i = fx.length - 1; i >= 0; i--) {
+    const f = fx[i];
+    f.t += dt;
+    const k = Math.min(1, f.t / f.dur);
+    f.passo(k, dt);
+    if (k >= 1) { cena.remove(f.o); if (f.o.material) f.o.material.dispose(); fx.splice(i, 1); }
+  }
+  luzBoom.intensity *= Math.exp(-10 * dt);
+  for (let i = misseis.length - 1; i >= 0; i--) {
+    const ms = misseis[i];
+    ms.t += dt;
+    ms.v = Math.min(32, ms.v + 26 * dt);                            // sai devagar e acelera
+    const a = ms.alvo === meuId ? (morto ? null : pos) : outros.get(ms.alvo);
+    const ap = a === pos ? pos : a && !a.morto ? a.g.position : null;
+    if (ap && ms.t > 0.15) {                                        // teleguiado: vira aos poucos pro alvo
+      tmp.set(ap.x, ap.y + 1.1, ap.z).sub(ms.p).normalize();
+      ms.d.lerp(tmp, Math.min(1, 7 * dt)).normalize();
+      if (ms.dono === meuId && ms.p.distanceTo(tmp.set(ap.x, ap.y + 1.1, ap.z)) < 1.7) {   // espoleta de proximidade: passou raspando, explode
+        explodir(ms.p.clone(), ms); tirarMissil(i); continue;
+      }
+    }
+    const passo = ms.v * dt;
+    if (ms.dono === meuId) {
+      const r = tracar(ms.p, ms.d, meuId);
+      if (r.t <= passo + 0.25 || ms.t > 5) { explodir(ms.t > 5 ? ms.p : r.ponto, ms); tirarMissil(i); continue; }
+    } else if (ms.t > 7) { tirarMissil(i); continue; }              // o aviso de explosão não chegou: some
+    ms.p.addScaledVector(ms.d, passo);
+    ms.m.position.copy(ms.p);
+    ms.m.quaternion.setFromUnitVectors(EIXO_Y, ms.d);
+    ms.fum -= dt;
+    if (ms.fum <= 0) { ms.fum = 0.03; fumaca(ms.p); }
+  }
+}
+
+// ───────── Loop ─────────
+let antes = performance.now(), envio = 0;
+const deslocCam = new V3();
+function quadro(agora) {
+  requestAnimationFrame(quadro);
+  const dt = Math.min(0.05, (agora - antes) / 1000);
+  antes = agora;
+  T = agora / 1000;
+  let luneta = false;
+  if (eu) {
+    if (!morto && !emFim && !fora) {
+      mover(dt);
+      armas(dt);
+      if (T - tDash > DASH_CD !== dashPronto) { dashPronto = !dashPronto; hud(); }   // atualiza o aviso de dash
+      if (vida < vidaMax && T - tDano > 5) {            // vida volta sozinha depois de 5s sem levar tiro
+        vida = Math.min(vidaMax, vida + 25 * dt);
+        $('vida').firstChild.style.width = vida / vidaMax * 100 + '%';
+      }
+    } else { mirando = false; correndo = false; agachado = false; emote = 0; }
+    eu.g.position.copy(pos);
+    eu.g.rotation.y = yaw;
+    eu.pitch = pitch; eu.rec = tRec > 0; eu.ag = agachado; eu.em = emote;
+    eu.st = morto ? 4 : !noChao ? 3 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
+    if (eu.mod && !fora) animar(eu, T);
+    envio -= dt;
+    if (envio <= 0) {
+      envio = 0.05;
+      mandar({ t: 'p', p: arr(pos, 2), r: +yaw.toFixed(2), x: +pitch.toFixed(2), m: fora ? 2 : morto ? 1 : 0, k: abates,
+               c: escolha.c, a: armaIdx(), s: eu.st, rc: tRec > 0 ? 1 : 0, g: agachado ? 1 : 0,
+               em: emote, md: modo === 'ondas' ? 1 : 0, on: ondaN, bv: baseVida });
+      tique++;
+      for (const [id, o] of outros)      // zumbis mandam posição 3x mais devagar (são muitos); os caídos, quase nunca
+        if (o.bot && (!o.bot.zumbi || (tique % 3 === 0 && (!o.fora || tique % 30 === 0))))
+          mandar({ t: 'p', b: id, p: arr(o.bot.pos, 2), r: +o.yaw.toFixed(2), x: +o.pitch.toFixed(2), m: o.fora ? 2 : o.morto ? 1 : 0, k: o.k,
+                            c: o.c, a: o.a, s: o.st, rc: 0 });
+    }
+  }
+  if (modo === 'ondas' && eu && !emFim && souHost()) gerirOndas(dt);
+  for (const [id, o] of outros) {
+    if (o.bot) {
+      if (!emFim) (o.bot.zumbi ? pensarZumbi : pensarBot)(id, o, dt);
+      if (o.morto) o.st = 4;
+      o.g.position.copy(o.bot.pos);
+    } else o.g.position.lerp(o.alvo, 1 - Math.exp(-18 * dt));
+    o.g.rotation.y = o.yaw;
+    o.g.visible = !o.fora && !!o.mod;
+    if (o.mod && !o.fora) animar(o, T);
+  }
+  moverTiros(dt);
+
+  // câmera
+  let fov = 75;
+  if (naTitulo) {                       // tela preta: os três saem do escuro, iluminados só pelo fogo
+    const rev = elT.classList.contains('revela'), a = Math.sin(agora / 7000) * 0.55;
+    tRaio += ((rev ? 6 : 4.8) - tRaio) * (1 - Math.exp(-0.7 * dt));          // câmera chega perto e depois recua
+    tOlhar += ((rev ? 5.3 : 3.3) - tOlhar) * (1 - Math.exp(-1.6 * dt));      // e sobe o olhar pra abrir espaço pro título
+    camera.position.set(Math.sin(a) * tRaio, 3 + Math.sin(agora / 3100) * 0.25, Math.cos(a) * tRaio);
+    camera.lookAt(0, tOlhar, 0);
+    fov = 52;
+    clarao *= Math.exp(-7 * dt);
+    luzCeu.intensity = 0.03 + fogoNivel * 0.14 + clarao * 1.5;
+    sol.intensity = clarao * 2.2;
+    fogo.intensity = (2.2 + Math.sin(T * 13) * 0.35 + Math.sin(T * 31) * 0.2) * fogoNivel;   // tremulando
+    fogo.position.set(camera.position.x * 0.5, 2.6, camera.position.z * 0.5);                // luz de baixo, na frente deles
+    for (const h of herois) if (h.g.visible) animar(h, T);
+    animarFogo(dt);
+    desenharBrasas(dt);
+  } else if (fora) {                    // loadout: boneco girando no bloco central
+    vitrine.g.rotation.y = T * 0.9;
+    if (vitrine.mod) animar(vitrine, T);
+    camera.position.set(0, 3.6, -4.4);
+    camera.lookAt(0, 3.2, 0);
+    fov = 55;
+  } else {
+    const A = ARMAS[armaIdx()];
+    luneta = mirando && A.zoom < 30;
+    fov = mirando ? A.zoom : correndo ? 82 : T - tDash < 0.2 ? 98 : 75;     // dash estica a visão
+    mAds += ((mirando ? 1 : 0) - mAds) * (1 - Math.exp(-14 * dt));
+    camera.rotation.set(pitch, yaw, 0);
+    olho += ((agachado ? 1.15 : OLHO) - olho) * (1 - Math.exp(-14 * dt));
+    if (emote && !morto) {                                           // emote: a câmera vai pra frente pra você se ver
+      camera.position.set(pos.x - Math.sin(yaw) * 3.3, pos.y + 1.6, pos.z - Math.cos(yaw) * 3.3);
+      camera.lookAt(pos.x, pos.y + 1.1, pos.z);
+    } else if (!morto) {
+      baque *= Math.exp(-10 * dt); tremor *= Math.exp(-9 * dt);
+      camera.position.set(pos.x + (Math.random() - 0.5) * tremor, pos.y + olho - baque + (Math.random() - 0.5) * tremor, pos.z + (Math.random() - 0.5) * tremor);
+    }     // primeira pessoa: câmera no olho
+    else {                                                           // morreu: recua pra ver o próprio corpo cair
+      deslocCam.set(0.6, 0.7, 3.4).applyQuaternion(camera.quaternion);
+      camera.position.set(pos.x, pos.y + 1.2, pos.z).add(deslocCam);
+      camera.position.x = Math.max(-ARENA + 0.3, Math.min(ARENA - 0.3, camera.position.x));
+      camera.position.z = Math.max(-ARENA + 0.3, Math.min(ARENA - 0.3, camera.position.z));
+      camera.position.y = Math.max(0.3, camera.position.y);
+    }
+  }
+  vitrine.g.visible = fora && !naTitulo;
+  if (eu && eu.mod) eu.mod.visible = morto || !!emote;       // vivo eu não vejo meu corpo, só a arma (menos em emote)
+  $('luneta').style.opacity = luneta ? 1 : 0;
+  atualizarTrava();
+  camera.fov += (fov - camera.fov) * (1 - Math.exp(-14 * dt));
+  camera.updateProjectionMatrix();
+  renderer.clear();
+  renderer.render(cena, camera);
+  if (eu && !fora && !morto && !luneta && !emote) {         // arma por cima, com a profundidade zerada
+    poseVM(dt);
+    renderer.clearDepth();
+    renderer.render(cenaVM, camVM);
+  }
+}
+requestAnimationFrame(quadro);
+</script>
+</body>
+</html>
