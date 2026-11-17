@@ -18,10 +18,12 @@ Abre em `http://localhost:8777`. Na mesma rede Wi‑Fi, os outros entram pelo IP
 Precisa do [cloudflared](https://github.com/cloudflare/cloudflared/releases/latest) (`cloudflared-windows-amd64.exe`) salvo como `cloudflared/cloudflared.exe`. Com o servidor rodando, em outro terminal:
 
 ```bash
-cmd /c tunel.cmd
+python tunel.py
 ```
 
-O link público é a linha `https://….trycloudflare.com`. Ele muda toda vez que o túnel reinicia.
+**Link fixo pros amigos: https://gabrieldafontourabarbosa.github.io/fonterector/**
+
+O túnel ganha um endereço novo toda vez que reconecta. O `tunel.py` grava o endereço atual em `docs/link.txt` e manda pro GitHub; a página do link fixo lê esse arquivo e redireciona. Leva até um minuto pra atualizar depois que o túnel sobe.
 
 ## Modos
 
@@ -48,7 +50,8 @@ Criar sala gera um link `?sala=XXXX`; quem abrir esse link cai na mesma partida.
 
 - `index.html` — o jogo inteiro (three.js r128 via CDN)
 - `servidor.py` — servidor FastAPI: entrega a página e repassa as mensagens entre os jogadores de cada sala
-- `assets/` — modelos 3D, todos CC0 (licenças em cada pasta)
+- `assets/` — modelos 3D CC0 (licenças em cada pasta) e `assets/amigo/PulseRifle.glb`, feito por um amigo do Gabriel
+- `tunel.py` e `docs/` — túnel público e a página do link fixo
 - `victor.jpg` — opcional, fora do git: foto pintada na cabeça do Victor Gomes. Sem ela aparece um rosto desenhado.
 
 ## Créditos

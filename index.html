@@ -10,6 +10,7 @@
   #hud{position:fixed;inset:0;pointer-events:none}
   body.fora #hud{display:none}
   #mira{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #0009;transition:transform .12s,box-shadow .12s}
+  #mira.ads{width:4px;height:4px;margin:-2px;background:#ff3b3b;box-shadow:0 0 6px 1px #ff3b3b}
   #mira.hit{transform:scale(2.4);box-shadow:0 0 0 2px #ef4444}
   #mira.cabeca{transform:scale(3);box-shadow:0 0 0 2px #facc15}
   #luneta{position:absolute;inset:0;opacity:0;background:radial-gradient(circle at center,transparent 0,transparent 30vmin,#000 30.6vmin)}
@@ -227,6 +228,8 @@ const ARMAS = [
   { nome: 'Katana',          desc: 'Corta de perto. Shift ou botão direito: dash', slot: 2, melee: true, alcance: 3.2, dano: 70, cad: 0.45, pente: Infinity, rec: 0, hip: 0, ads: 0, bloom: 0, zoom: 75, auto: true, balas: 0, coice: 0, emp: 4, mob: 1, comp: 1.1, som: 700 },
   { nome: 'Garras',          desc: 'Ataque dos zumbis', slot: 3, melee: true, alcance: 1.5, dano: 14, cad: 0.9, pente: Infinity, rec: 0, hip: 0, ads: 0, bloom: 0, zoom: 75, auto: true, balas: 0, coice: 0, emp: 3, mob: 1, comp: 0, som: 150 },
   { nome: 'Mísseis',         desc: 'Teleguiados: perseguem quem estiver na mira', slot: 2, missil: true, alcance: 999, dano: 85, cad: 0.9, pente: 4, rec: 2.8, hip: 0, ads: 0, bloom: 0, zoom: 62, auto: false, balas: 1, coice: 0.05, emp: 6, mob: 1, comp: 0.7, tiro: [600, 0.5, 90] },
+  // modelo feito por um amigo (assets/amigo/PulseRifle.glb). rajada = tiros por clique; cad = intervalo dentro da rajada
+  { nome: 'Pulse Rifle',     desc: 'Rajada de 3 pulsos de energia', slot: 0, energia: true, cor: 0x38e8ff, rajada: 3, pausa: 0.3, dano: 30, cad: 0.07, pente: 36, rec: 1.8, hip: 0.012, ads: 0.001, bloom: 0.004, alcance: 45, zoom: 48, auto: false, balas: 1, coice: 0.011, emp: 0.8, mob: 1, comp: 0.95, tiro: [5200, 0.12, 320] },
 ];
 
 // Regra de dano: cabeça vale 1,6x. Passou do alcance da arma, o dano cai aos poucos
@@ -496,30 +499,62 @@ if (THREE.OBJLoader && THREE.MTLLoader) ARQ_ARMA.forEach((arq, ai) => {
   new THREE.MTLLoader().setPath('assets/armas/').load(arq + '.mtl', mats => {
     mats.preload();
     new THREE.OBJLoader().setMaterials(mats).setPath('assets/armas/').load(arq + '.obj', obj => {
-      const b = new THREE.Box3().setFromObject(obj);
-      obj.scale.setScalar(ARMAS[ai].comp / (b.max.x - b.min.x));      // encolhe pro comprimento da arma no jogo
-      obj.rotation.y = Math.PI / 2;                                    // o cano vem apontando pra +x; no jogo a frente é -z
-      obj.position.y = -0.03;
-      ARMAS[ai].boca = b.max.x * obj.scale.x;                          // distância da mão até a ponta do cano
       obj.traverse(n => {                                              // o preto do pacote some na sombra: clareia e dá brilho
         for (const m of n.material ? [].concat(n.material) : []) {
           if (m.color.r + m.color.g + m.color.b < 0.3) m.color.setHex(0x34383f);
           m.specular = new THREE.Color(0x555555); m.shininess = 40; m.flatShading = true;
         }
       });
-      modeloArma[ai] = new THREE.Group();
-      modeloArma[ai].add(obj);
+      // fuzis vêm com o cano pra +x; pistola e revólver, pra -x. No jogo a frente é -z.
+      modeloArma[ai] = ajeitarArma(obj, ai, ai >= 4 ? -Math.PI / 2 : Math.PI / 2);
       armasMontadas.forEach(g => { if (g.userData.ai === ai) pecasArma(g, ai); });
     }, undefined, () => {});
   }, undefined, () => {});
 });
+// Deixa todo modelo de arma no mesmo padrão: cano pra -z, comprimento do jogo (comp), a mão
+// na origem com um pedaço da arma atrás dela (coronha) e o topo — por onde se mira — a 7 cm acima da mão.
+// É isso que faz a mira do botão direito cair certinho no centro da tela.
+function ajeitarArma(obj, ai, giro) {
+  const A = ARMAS[ai];
+  obj.rotation.y = giro;
+  obj.updateMatrixWorld(true);
+  let b = new THREE.Box3().setFromObject(obj);
+  obj.scale.multiplyScalar(A.comp / (b.max.z - b.min.z));
+  obj.updateMatrixWorld(true);
+  b = new THREE.Box3().setFromObject(obj);
+  const L = b.max.z - b.min.z, atras = A.slot === 1 ? 0.15 : 0.3;
+  obj.position.set(-(b.min.x + b.max.x) / 2, 0.07 - b.max.y, atras * L - b.max.z);
+  A.boca = (1 - atras) * L;                    // da mão até a ponta do cano
+  A.topo = 0.07;
+  const g = new THREE.Group();
+  g.add(obj);
+  return g;
+}
+// Arma do amigo: Pulse Rifle (.glb). O cano vem pra +z e a coronha pra -z.
+if (gltf) gltf.load('assets/amigo/PulseRifle.glb', g => {
+  const ai = ARMAS.findIndex(a => a.energia);
+  g.scene.traverse(n => {
+    if (!n.isMesh) return;
+    n.material = n.material.clone();
+    n.material.emissive = new THREE.Color(ARMAS[ai].cor);       // brilho que pulsa ao atirar (ver brilhoEnergia)
+    n.material.emissiveIntensity = 0.06;
+    n.userData.energia = true;
+  });
+  modeloArma[ai] = ajeitarArma(g.scene, ai, Math.PI);
+  armasMontadas.forEach(x => { if (x.userData.ai === ai) pecasArma(x, ai); });
+}, undefined, () => {});
 function pecasArma(g, ai) {       // mesma arma serve pro boneco e pra visão em primeira pessoa
   const A = ARMAS[ai], esc = M(0x1c1c1c), l = A.comp;
   g.userData.ai = ai;
   if (!armasMontadas.includes(g)) armasMontadas.push(g);
   while (g.children.length) g.remove(g.children[0]);
   if (ai === 7) return;                                                          // garras do zumbi: mãos vazias
-  if (modeloArma[ai]) { g.add(modeloArma[ai].clone()); return; }
+  if (modeloArma[ai]) {
+    const m = modeloArma[ai].clone();
+    if (A.energia) m.traverse(n => { if (n.userData.energia) n.material = n.material.clone(); });   // cada cópia brilha sozinha
+    g.add(m);
+    return;
+  }
   if (A.melee) {                                                                 // katana
     g.add(cx(0.025, 0.07, 1, M(0xdfe6ee), 0, 0, -0.62));                         // lâmina
     g.add(cx(0.14, 0.14, 0.03, M(0xd4a017), 0, 0, -0.1));                        // guarda
@@ -795,6 +830,10 @@ function montarVM() {             // refaz ao nascer e ao trocar de arma
   be.rotation.y = longa ? -0.6 : -0.3;
   vmClarao.position.set(0, 0.03, -(A.boca || A.comp - 0.08) - 0.06);
   vm.add(g, bd, be, vmClarao);
+  tSaque = T;
+}
+function brilhoEnergia(raiz, k) {      // acende o emissivo das peças da Pulse Rifle
+  raiz.traverse(n => { if (n.userData.energia) n.material.emissiveIntensity = k; });
 }
 function poseVM(dt) {
   if (ARMAS[armaIdx()].melee) {         // katana: erguida, ou 3 poses secas de corte (sem suavizar)
@@ -808,21 +847,32 @@ function poseVM(dt) {
     vmClarao.visible = false;
     return;
   }
-  const k = 1 - Math.exp(-20 * dt);
-  // mirando, a arma vem pro centro e sobe até a mira ficar logo abaixo do ponto
-  let x = 0.2 * (1 - mAds), y = -0.2 + 0.095 * mAds, z = -0.45 + 0.1 * mAds, rx = 0, ry = 0;
+  const k = 1 - Math.exp(-20 * dt), A = ARMAS[armaIdx()];
+  // mirando, a arma vem pro centro e o topo dela (A.topo, acima da mão) para logo abaixo do centro da tela
+  const yAds = -(A.topo || 0.07) - 0.012;
+  let x = 0.2 * (1 - mAds), y = -0.2 * (1 - mAds) + yAds * mAds, z = -0.42 + 0.08 * mAds, rx = 0, ry = 0, rz = 0;
   if (noChao && Math.hypot(vel.x, vel.z) > 0.8) {   // balanço em 4 poses, igual à passada dos bonecos
     const f = Math.floor(T * (correndo ? 11 : 7)) % 4, a = (correndo ? 2.2 : 1) * (1 - mAds * 0.8);
     x += [0.01, 0, -0.01, 0][f] * a; y += [0, -0.014, 0, -0.014][f] * a;
   }
   if (correndo) { y -= 0.06; rx = -0.25; ry = 0.55; }                  // correndo: arma atravessada
-  if (tRec > 0) { y -= 0.16; rx = -0.7 + (Math.floor(T * 6) % 2) * 0.12; }
+  if (tRec > 0) {
+    if (A.energia) {                                   // pulse rifle: desce, dá um giro de 360° no próprio eixo e volta
+      const p = 1 - tRec / A.rec;
+      y -= 0.1 * Math.sin(p * Math.PI); rz = p * Math.PI * 2; rx = -0.2 * Math.sin(p * Math.PI);
+    } else { y -= 0.16; rx = -0.7 + (Math.floor(T * 6) % 2) * 0.12; }
+  }
   if (tTroca > 0) y -= 0.3 * (tTroca / 0.45);
+  const saque = Math.max(0, 1 - (T - tSaque) / 0.35);  // sacar: sobe de baixo, girando de lado
+  y -= 0.25 * saque * saque; rz += 0.9 * saque * saque;
   vmCoice *= Math.exp(-18 * dt);
   vm.position.lerp(vmAlvo.set(x, y, z + 0.07 * vmCoice), k);
-  vm.rotation.x += (rx + 0.09 * vmCoice - vm.rotation.x) * k;
+  vm.rotation.x += (rx + 0.09 * vmCoice * (1 - 0.6 * mAds) - vm.rotation.x) * k;
   vm.rotation.y += (ry - vm.rotation.y) * k;
+  vm.rotation.z = tRec > 0 && A.energia ? rz : vm.rotation.z + (rz - vm.rotation.z) * k;
   vmClarao.visible = T - eu.tTiro < 0.05;                             // clarão do tiro por 1 quadro
+  vmClarao.material.color.setHex(A.energia ? A.cor : 0xffe08a);
+  if (A.energia) brilhoEnergia(vm, 0.06 + 0.04 * Math.sin(T * 4) + 1.4 * Math.max(0, 1 - (T - eu.tTiro) / 0.12));
 }
 
 // ───────── Som (sintetizado, sem arquivos) ─────────
@@ -859,6 +909,10 @@ function ruido(dur, hz, vol) {
 function somTiro(ai, de) {
   const A = ARMAS[ai], d = de ? de.distanceTo(pos) : 0, v = (de ? 0.6 : 1) * Math.max(0, 1 - d / 75);
   if (!A.tiro) { som(A.som, 0.14, 0.12 * v, 'triangle'); return; }
+  if (A.energia) {                                    // "piu" de energia: tom que despenca + chiado agudo
+    som(1600, 0.16, 0.18 * v, 'square'); som(240, 0.2, 0.25 * v, 'sawtooth'); ruido(0.08, 6000, 0.2 * v);
+    return;
+  }
   ruido(A.tiro[1], A.tiro[0], 0.55 * v);
   ruido(A.tiro[1] * 2.5, 420, 0.22 * v);
   som(A.tiro[2], A.tiro[1] * 0.8, 0.4 * v, 'sine');
@@ -877,7 +931,7 @@ const outros = new Map();   // id -> entidade (+ alvo, yaw, morto, fora, k, bot?
 const tiros = [];
 const teclas = {};
 const SPAWNS = [[-31, -31], [31, 31], [-31, 31], [31, -31], [-31, 0], [31, 0], [-10, -31], [10, 31]];
-let bloom = 0, recuo = 0, tUltTiro = -9;        // espalhamento acumulado da rajada e coice a devolver
+let bloom = 0, recuo = 0, tUltTiro = -9, rajada = 0, tSaque = -9;        // espalhamento acumulado da rajada e coice a devolver
 let tChao = -9, tPulo = -9, baque = 0, tremor = 0, alvoTravado = 0;
 let liberado = false;                           // classe Fonterector destrancada neste navegador?
 try { liberado = localStorage.getItem('fonterector-robo') === '1'; } catch (e) {}
@@ -1379,7 +1433,7 @@ function tratar(m) {
     if (m.k >= META) vitoria(nome(m.id) + ' venceu!');
   } else if (m.t === 'tiro') {
     const de = new V3().fromArray(m.o), ai = ARMAS[m.a] ? m.a : 0;
-    for (const f of m.fs || []) { const p = new V3().fromArray(f); rastro(de, p); faisca(p); }     // só o desenho: o acerto vem em 'hit'
+    for (const f of m.fs || []) { const p = new V3().fromArray(f); rastro(de, p, ai); faisca(p, ai); }     // só o desenho: o acerto vem em 'hit'
     o.tTiro = T;
     somTiro(ai, de);
   } else if (m.t === 'missil') {
@@ -1560,7 +1614,7 @@ function mover(dt) {
 function recarregar() {
   const A = ARMAS[armaIdx()];
   if (morto || tRec > 0 || municao[slot] >= A.pente) return;
-  tRec = A.rec;
+  tRec = A.rec; rajada = 0;
   som(500, 0.06, 0.05, 'square');
   hud();
 }
@@ -1590,6 +1644,16 @@ function armas(dt) {
   }
   if (tTroca > 0) return;
   if (municao[slot] <= 0) { recarregar(); return; }
+  if (A.rajada) {                                       // rajada: um clique dispara A.rajada tiros seguidos
+    if (rajada <= 0 && atirando && gatilho && tCad <= 0) { gatilho = false; rajada = A.rajada; }
+    if (rajada > 0 && tCad <= 0 && municao[slot] > 0) {
+      rajada--; municao[slot]--;
+      tCad = rajada > 0 ? A.cad : A.pausa;
+      atirar(A);
+      hud();
+    }
+    return;
+  }
   if (atirando && tCad <= 0 && (A.auto || gatilho)) {
     gatilho = false; tCad = A.cad; municao[slot]--;
     atirar(A);
@@ -1664,8 +1728,9 @@ function disparar(dono, o, ds, ai, boca) {
   for (const d of ds) {
     const r = tracar(o, d, dono);
     fs.push(arr(r.ponto, 1));
-    rastro(boca || o, r.ponto);
-    if (!r.quem) { faisca(r.ponto); continue; }
+    rastro(boca || o, r.ponto, ai);
+    if (!r.quem) { faisca(r.ponto, ai); continue; }
+    if (A.energia) faisca(r.ponto, ai);
     const g = aoAcertar(A, r.t, r.cabeca);
     if (dono === meuId) marcador(r.cabeca, g.dano);
     ferir(dono, r.quem, { t: 'hit', to: r.quem, dano: g.dano * f, e: [d.x * g.empurrao * f, g.empurrao * 0.3 * f, d.z * g.empurrao * f] });
@@ -1676,7 +1741,7 @@ function disparar(dono, o, ds, ai, boca) {
 }
 function atirar(A) {
   const dir = new V3(0, 0, -1).applyQuaternion(camera.quaternion), o = camera.position.clone();
-  const boca = new V3(0.16 * (1 - mAds), -0.12, -0.7).applyQuaternion(camera.quaternion).add(o);
+  const boca = new V3(0.2 * (1 - mAds), -0.12 * (1 - mAds) - 0.05 * mAds, -0.4 - (A.boca || 0.5)).applyQuaternion(camera.quaternion).add(o);
   if (A.missil) lancarMissil(boca, dir);
   else {
     // 1º tiro quase reto; o espalhamento só abre andando, no ar ou em rajada longa (bloom)
@@ -1691,6 +1756,8 @@ function atirar(A) {
   recuo += k;
   yaw += (Math.random() - 0.5) * k * 0.5;
   tUltTiro = T; eu.tTiro = T; vmCoice = 1;
+  luzCano.color.setHex(A.energia ? A.cor : 0xffc46b);
+  luzCano.position.copy(boca); luzCano.intensity = A.energia ? 3 : 2;
   somTiro(armaIdx());
 }
 
@@ -1989,20 +2056,40 @@ const tmp = new V3(), EIXO_Y = new V3(0, 1, 0);
 function efeito(o, dur, passo) { cena.add(o); fx.push({ o, t: 0, dur, passo }); return o; }
 const brilho = (cor, op) => new THREE.SpriteMaterial({ map: texChama, color: cor, transparent: true, opacity: op === undefined ? 1 : op, blending: THREE.AdditiveBlending, depthWrite: false });
 const geoRastro = new THREE.BoxGeometry(0.035, 0.035, 1);
-function rastro(a, b) {
-  const d = a.distanceTo(b);
+function rastro(a, b, ai) {
+  const d = a.distanceTo(b), E = ARMAS[ai] && ARMAS[ai].energia;
   if (d < 0.6) return;
+  if (E) {                                            // pulso de energia: miolo branco + capa ciano grossa, encolhendo
+    for (const [cor, w, dur] of [[0xffffff, 1.4, 0.09], [ARMAS[ai].cor, 4.5, 0.16]]) {
+      const m = new THREE.Mesh(geoRastro, new THREE.MeshBasicMaterial({ color: cor, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      m.position.copy(a).lerp(b, 0.5); m.lookAt(b); m.scale.set(w, w, d);
+      efeito(m, dur, k => { m.material.opacity = 1 - k; m.scale.x = m.scale.y = w * (1 - k * 0.8); });
+    }
+    return;
+  }
   const m = new THREE.Mesh(geoRastro, new THREE.MeshBasicMaterial({ color: 0xfff1a8, transparent: true, opacity: 0.9 }));
   m.position.copy(a).lerp(b, 0.5);
   m.lookAt(b);
   m.scale.z = d;
   efeito(m, 0.07, k => { m.material.opacity = 0.9 * (1 - k); });
 }
-function faisca(p) {
+const geoAnel = new THREE.RingGeometry(0.6, 1, 20);
+function faisca(p, ai) {
+  if (ARMAS[ai] && ARMAS[ai].energia) {              // impacto de energia: anel que abre virado pra câmera + clarão
+    const c = ARMAS[ai].cor, anel = new THREE.Mesh(geoAnel, new THREE.MeshBasicMaterial({ color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    anel.position.copy(p); anel.lookAt(camera.position);
+    efeito(anel, 0.28, k => { anel.scale.setScalar(0.1 + k * 0.6); anel.material.opacity = 1 - k; });
+    const s = new THREE.Sprite(brilho(c));
+    s.position.copy(p);
+    efeito(s, 0.18, k => { s.scale.setScalar(0.9 * (1 - k)); s.material.opacity = 1 - k; });
+    return;
+  }
   const s = new THREE.Sprite(brilho(0xffd27a));
   s.position.copy(p);
   efeito(s, 0.12, k => { s.scale.setScalar(0.35 + k * 0.5); s.material.opacity = 1 - k; });
 }
+const luzCano = new THREE.PointLight(0xffc46b, 0, 9);      // clarão do meu tiro iluminando o cenário em volta
+cena.add(luzCano);
 function fumaca(p, tam) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChama, color: 0xa3a3a3, transparent: true, opacity: 0.5, depthWrite: false }));
   s.position.copy(p);
@@ -2099,6 +2186,7 @@ function moverTiros(dt) {
     if (k >= 1) { cena.remove(f.o); if (f.o.material) f.o.material.dispose(); fx.splice(i, 1); }
   }
   luzBoom.intensity *= Math.exp(-10 * dt);
+  luzCano.intensity *= Math.exp(-40 * dt);
   for (let i = misseis.length - 1; i >= 0; i--) {
     const ms = misseis[i];
     ms.t += dt;
@@ -2223,6 +2311,7 @@ function quadro(agora) {
   vitrine.g.visible = fora && !naTitulo;
   if (eu && eu.mod) eu.mod.visible = morto || !!emote;       // vivo eu não vejo meu corpo, só a arma (menos em emote)
   $('luneta').style.opacity = luneta ? 1 : 0;
+  $('mira').classList.toggle('ads', mAds > 0.6 && !luneta);   // mirando: some a bolinha, fica um ponto vermelho em cima da arma
   atualizarTrava();
   camera.fov += (fov - camera.fov) * (1 - Math.exp(-14 * dt));
   camera.updateProjectionMatrix();
