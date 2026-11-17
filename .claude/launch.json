@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fonterector",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["servidor.py"],
+      "port": 8777,
+      "url": "http://127.0.0.1:8777"
+    },
+    {
+      "name": "fonterector-teste",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["servidor.py", "8778"],
+      "port": 8778,
+      "url": "http://127.0.0.1:8778"
+    }
+  ]
+}
