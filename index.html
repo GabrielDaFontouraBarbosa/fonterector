@@ -24,6 +24,12 @@
   .num{position:absolute;top:46%;font:800 20px system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px #000;animation:sobeNum .6s ease-out forwards}
   .num.cab{color:#facc15;font-size:26px}
   @keyframes sobeNum{from{transform:translateY(0);opacity:1}to{transform:translateY(-46px);opacity:0}}
+  #auraTela{position:absolute;inset:0;opacity:0;--c:#60a5fa;background:radial-gradient(transparent 55%,var(--c))}
+  #skill{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);min-width:220px;padding:7px 14px;display:none;overflow:hidden;
+    background:#000a;border:1px solid #fff4;border-radius:4px;font:800 13px system-ui,sans-serif;letter-spacing:.15em;text-align:center}
+  #skill b{position:relative}
+  #skill i{position:absolute;left:0;bottom:0;height:3px;background:#fbbf24}
+  #skill.pronta{border-color:#fbbf24;box-shadow:0 0 14px #fbbf2488}
   #vida{position:absolute;left:20px;bottom:20px;width:240px;height:16px;background:#0009;border-radius:3px;overflow:hidden}
   #vida i{display:block;height:100%;width:100%;background:#4ade80}
   #municao{position:absolute;right:22px;bottom:16px;text-align:right;font:800 30px system-ui,sans-serif;text-shadow:0 2px 5px #000}
@@ -140,7 +146,7 @@
     <div class="pre b">SÓ UM VAI SOBRAR.</div>
     <h1 id="logo"></h1>
     <h2>THE GAME</h2>
-    <div class="ato">ATO 3 — VICTOR GOMES MORRE DE NOVO</div>
+    <div class="ato">ATO 5 — VICTOR GOMES MORRE DE NOVO</div>
     <button class="botao">▶ ENTRAR NA ARENA</button>
     <div class="rodape">BASEADO EM FATOS QUE AINDA VÃO ACONTECER</div>
   </div>
@@ -155,13 +161,14 @@
   <section><h4>PRIMÁRIA</h4><div id="lPrim"></div><h4>SECUNDÁRIA</h4><div id="lSec"></div></section>
   <div class="pe">
     <button id="jogar" class="botao">▶ ENTRAR EM COMBATE</button>
-    <div class="dica">WASD anda · Shift corre · Espaço pula · C agacha · Clique atira · Botão direito mira · R recarrega · 1 / 2 / Q troca de arma · L loadout · B / N bots · Esc menu<br>Emotes: T aceno · G passinho do Jamal · H senta<br>Victor Gomes: clique corta · Shift ou botão direito dá dash · Fonterector: o míssil segue quem estiver marcado na mira</div>
+    <div class="dica">WASD anda · Shift corre · Espaço pula · C agacha · Clique atira · Botão direito mira · R recarrega · 1 / 2 / Q troca de arma · L loadout · B / N bots · Esc menu · F skill · C correndo desliza<br>Emotes: T aceno · G passinho do Jamal · H senta<br>Victor Gomes: clique corta · Shift ou botão direito dá dash · Fonterector: o míssil segue quem estiver marcado na mira</div>
   </div>
 </div>
 <div id="salas" class="painel" hidden>
   <h3>ESCOLHA O MODO</h3>
   <button class="op sel" data-modo="arcade"><b>Arcade</b><span>Todos contra todos. Primeiro a 10 abates vence.</span></button>
   <button class="op" data-modo="ondas"><b>Defender o Fonterector</b><span>Juntos contra ondas de zumbis que atacam o Fonterector, no centro.</span></button>
+  <button class="op" data-modo="safe"><b>Safe House</b><span>Lobby: casa, praça e fonte. Sem dano, só pra ficar de boa.</span></button>
   <button id="criarSala" class="botao">CRIAR SALA</button>
   <div class="ou">— ou entre numa sala que já existe —</div>
   <div class="linha"><input id="codigoSala" maxlength="8" placeholder="CÓDIGO" autocomplete="off"><button id="entrarSala" class="op">ENTRAR</button></div>
@@ -179,6 +186,7 @@
 </div>
 <div id="hud">
   <div id="dano"></div>
+  <div id="auraTela"></div>
   <div id="luneta"></div>
   <div id="corte"></div>
   <div id="trava"></div>
@@ -188,6 +196,7 @@
   <div id="aviso"></div>
   <div id="vida"><i></i></div>
   <div id="municao"></div>
+  <div id="skill"><b></b><i></i></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- carregadores de modelo (mesma versão do three): .glb do cenário e .obj/.mtl das armas -->
@@ -213,6 +222,7 @@ const PERSONAGENS = [
   { nome: 'Victor Gomes', desc: 'Classe especial: katana e dash',      vida: 110, vel: 1.15, esc: 1,    pele: 0xc99a7c, calca: 0x2b2f3a, det: 0x1b1b1f, extra: 'victor', camisa: 0x7387c9, arma: 6, dash: true },
   { nome: 'Zumbi',        desc: 'Só no modo Defender o Fonterector',   vida: 60,  vel: 0.6,  esc: 1,    pele: 0x7fa36b, calca: 0x3a3328, det: 0x2a241c, extra: 'zumbi', camisa: 0x55604a, oculto: true },
   { nome: 'Fonterector',  desc: 'Robô. Mísseis teleguiados que explodem em área', vida: 140, vel: 0.9, esc: 1.25, pele: 0x9aa7b4, calca: 0x4a5563, det: 0xd4a017, extra: 'robo', camisa: 0x6b7a8c, arma: 8, trancado: true },
+  { nome: 'Felipe Smite Lime', desc: 'Deus do trovão: raio que pula de inimigo em inimigo', vida: 115, vel: 1, esc: 1.08, pele: 0xe0b48f, calca: 0xe9e2cf, det: 0xd4a017, extra: 'zeus', camisa: 0xf4f1e8, arma: 10 },
 ];
 const SENHA_ROBO = '5656';      // fica no código da página: é trava de brincadeira, não segurança
 // slot 0 = primária, 1 = secundária. cad = s entre tiros · rec = s de recarga
@@ -230,6 +240,7 @@ const ARMAS = [
   { nome: 'Mísseis',         desc: 'Teleguiados: perseguem quem estiver na mira', slot: 2, missil: true, alcance: 999, dano: 85, cad: 0.9, pente: 4, rec: 2.8, hip: 0, ads: 0, bloom: 0, zoom: 62, auto: false, balas: 1, coice: 0.05, emp: 6, mob: 1, comp: 0.7, tiro: [600, 0.5, 90] },
   // modelo feito por um amigo (assets/amigo/PulseRifle.glb). rajada = tiros por clique; cad = intervalo dentro da rajada
   { nome: 'Pulse Rifle',     desc: 'Rajada de 3 pulsos de energia', slot: 0, energia: true, cor: 0x38e8ff, rajada: 3, pausa: 0.3, dano: 30, cad: 0.07, pente: 36, rec: 1.8, hip: 0.012, ads: 0.001, bloom: 0.004, alcance: 45, zoom: 48, auto: false, balas: 1, coice: 0.011, emp: 0.8, mob: 1, comp: 0.95, tiro: [5200, 0.12, 320] },
+  { nome: 'Raio',            desc: 'Raio em cadeia: pula pra até 2 inimigos perto do alvo', slot: 2, raio: true, cor: 0x9fd8ff, dano: 40, cad: 0.55, pente: 6, rec: 2.2, hip: 0.004, ads: 0.001, bloom: 0, alcance: 60, zoom: 62, auto: false, balas: 1, coice: 0.03, emp: 2.5, mob: 1, comp: 0.6, tiro: [4500, 0.4, 55] },
 ];
 
 // Regra de dano: cabeça vale 1,6x. Passou do alcance da arma, o dano cai aos poucos
@@ -242,7 +253,7 @@ function aoAcertar(arma, distancia, naCabeca) {
 // ───────── Cena ─────────
 const $ = id => document.getElementById(id);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
 document.body.prepend(renderer.domElement);
 const tela = renderer.domElement;
 const cena = new THREE.Scene();
@@ -288,33 +299,41 @@ const grade = new THREE.GridHelper(ARENA * 2, 22, 0x4d5c44, 0x4d5c44);
 grade.position.y = 0.01;
 cena.add(grade);
 
-// caixas = paredes + coberturas; cada uma guarda seu AABB pra colisão
+// caixas = paredes + coberturas; cada uma guarda seu AABB pra colisão.
+// Tudo que é do mapa mora em grupoMapa: trocar de mapa = jogar o grupo fora e montar outro.
 const caixas = [], solidos = [chao];
-function caixa(x, z, w, d, h, cor) {
-  const m = cx(w, h, d, M(cor), x, h / 2, z);
-  cena.add(m);
+let grupoMapa = new THREE.Group(), mapaAtual = '';
+const vitrinePos = new V3(0, 2.2, 0);           // onde fica o boneco de mostruário do loadout
+cena.add(grupoMapa);
+function caixa(x, z, w, d, h, cor, y0) {
+  y0 = y0 || 0;
+  const m = cx(w, h, d, M(cor), x, y0 + h / 2, z);
+  grupoMapa.add(m);
   solidos.push(m);
-  caixas.push({ x0: x - w / 2, x1: x + w / 2, y0: 0, y1: h, z0: z - d / 2, z1: z + d / 2 });
+  caixas.push({ x0: x - w / 2, x1: x + w / 2, y0, y1: y0 + h, z0: z - d / 2, z1: z + d / 2 });
+  return m;
 }
+function enfeite(o) { grupoMapa.add(o); return o; }        // só visual, sem colisão
+const gltf = THREE.GLTFLoader ? new THREE.GLTFLoader() : null;         // se o carregador não vier, a fase fica só com as caixas
+function montarMapa(nome) {
+  if (nome === mapaAtual) return;
+  mapaAtual = nome;
+  cena.remove(grupoMapa);
+  grupoMapa = new THREE.Group();
+  cena.add(grupoMapa);
+  caixas.length = 0; solidos.length = 1;
+  const casa = nome === 'casa';
+  chao.material.color.setHex(casa ? 0x6aa84f : 0x66785a);
+  grade.visible = !casa;
+  vitrinePos.set(0, casa ? 0 : 2.2, casa ? 13 : 0);
+  (casa ? mapaCasa : mapaIndustrial)();
+}
+const W = ARENA + 1;
+
 // ───────── Fase: pátio industrial ─────────
 // Colisão é sempre caixa. As peças baixadas (Kenney City Kit Industrial, CC0) ganham a caixa
 // sozinhas, medida do próprio modelo depois de posicionado.
-const W = ARENA + 1;
 const CONCRETO = 0x7d8597, MADEIRA = 0x9c6b30, ACO = 0x5c677d;
-caixa(0, -W, W * 2 + 2, 2, 8, CONCRETO); caixa(0, W, W * 2 + 2, 2, 8, CONCRETO);
-caixa(-W, 0, 2, W * 2 + 2, 8, CONCRETO); caixa(W, 0, 2, W * 2 + 2, 8, CONCRETO);
-caixa(0, 0, 5, 5, 2.2, 0xb5651d);                                       // bloco central (base do Fonterector)
-caixa(-7, 0, 1.2, 4, 1.2, 0x8d7b68); caixa(7, 0, 1.2, 4, 1.2, 0x8d7b68);   // muretas em volta do centro
-caixa(0, -8, 4, 1.2, 1.2, 0x8d7b68); caixa(0, 8, 4, 1.2, 1.2, 0x8d7b68);
-function plataforma(x, z, lado) {            // plataforma de 1,5 m com escada de degraus de 0,3 m virada pro centro
-  caixa(x, z, 6, 7, 1.5, ACO);
-  caixa(x + lado * 2.8, z, 0.4, 7, 2.4, 0x495467);                      // parapeito do lado de fora
-  for (let i = 1; i <= 4; i++) caixa(x - lado * (2.7 + i * 0.6), z, 0.6, 3, 1.5 - i * 0.3, 0x495467);
-}
-plataforma(20, 0, 1); plataforma(-20, 0, -1);
-for (const [x, z, t] of [[-14, -12, 1.6], [-12.6, -12.4, 1.1], [14, 12, 1.6], [12.6, 12.4, 1.1], [-17, 7, 1.3], [17, -7, 1.3], [6, -19, 1.4], [-6, 19, 1.4]])
-  caixa(x, z, t, t, t, MADEIRA);                                        // caixotes
-
 const PECAS = [                              // [arquivo, x, z, escala, giro em quartos de volta]
   ['building-a', -22, -22, 7, 0], ['building-l', 23, -21, 7, 0], ['building-r', -21, 23, 7, 2], ['building-e', 22, 22, 7, 2],
   ['building-g', 0, -27, 7, 0], ['building-m', 0, 27, 7, 2],
@@ -323,21 +342,111 @@ const PECAS = [                              // [arquivo, x, z, escala, giro em 
   ['detail-tank-large', -14, 15, 3, 0], ['detail-tank-large', 14, -15, 3, 2],
   ['water-tower', -30, 10, 5, 0], ['chimney-large', 30, -10, 5, 0],
 ];
-const gltf = THREE.GLTFLoader ? new THREE.GLTFLoader() : null;         // se o carregador não vier, a fase fica só com as caixas
-if (gltf) for (const arq of new Set(PECAS.map(p => p[0])))
-  gltf.load('assets/cenario/' + arq + '.glb', g => {
-    for (const [n, x, z, esc, giro] of PECAS) {
-      if (n !== arq) continue;
-      const m = g.scene.clone();
-      m.scale.setScalar(esc);
-      m.rotation.y = giro * Math.PI / 2;
-      m.position.set(x, 0, z);
-      cena.add(m);
-      m.updateMatrixWorld(true);
-      const b = new THREE.Box3().setFromObject(m);
-      caixas.push({ x0: b.min.x, x1: b.max.x, y0: 0, y1: b.max.y, z0: b.min.z, z1: b.max.z });
-    }
-  }, undefined, () => {});
+function mapaIndustrial() {
+  caixa(0, -W, W * 2 + 2, 2, 8, CONCRETO); caixa(0, W, W * 2 + 2, 2, 8, CONCRETO);
+  caixa(-W, 0, 2, W * 2 + 2, 8, CONCRETO); caixa(W, 0, 2, W * 2 + 2, 8, CONCRETO);
+  caixa(0, 0, 5, 5, 2.2, 0xb5651d);                                       // bloco central (base do Fonterector)
+  caixa(-7, 0, 1.2, 4, 1.2, 0x8d7b68); caixa(7, 0, 1.2, 4, 1.2, 0x8d7b68);   // muretas em volta do centro
+  caixa(0, -8, 4, 1.2, 1.2, 0x8d7b68); caixa(0, 8, 4, 1.2, 1.2, 0x8d7b68);
+  const plataforma = (x, z, lado) => {       // plataforma de 1,5 m com escada de degraus de 0,3 m virada pro centro
+    caixa(x, z, 6, 7, 1.5, ACO);
+    caixa(x + lado * 2.8, z, 0.4, 7, 2.4, 0x495467);                      // parapeito do lado de fora
+    for (let i = 1; i <= 4; i++) caixa(x - lado * (2.7 + i * 0.6), z, 0.6, 3, 1.5 - i * 0.3, 0x495467);
+  };
+  plataforma(20, 0, 1); plataforma(-20, 0, -1);
+  for (const [x, z, t] of [[-14, -12, 1.6], [-12.6, -12.4, 1.1], [14, 12, 1.6], [12.6, 12.4, 1.1], [-17, 7, 1.3], [17, -7, 1.3], [6, -19, 1.4], [-6, 19, 1.4]])
+    caixa(x, z, t, t, t, MADEIRA);                                        // caixotes
+  const g0 = grupoMapa;                      // se o mapa trocar antes do modelo chegar, o modelo é ignorado
+  if (gltf) for (const arq of new Set(PECAS.map(p => p[0])))
+    gltf.load('assets/cenario/' + arq + '.glb', g => {
+      if (grupoMapa !== g0) return;
+      for (const [n, x, z, esc, giro] of PECAS) {
+        if (n !== arq) continue;
+        const m = g.scene.clone();
+        m.scale.setScalar(esc);
+        m.rotation.y = giro * Math.PI / 2;
+        m.position.set(x, 0, z);
+        grupoMapa.add(m);
+        m.updateMatrixWorld(true);
+        const b = new THREE.Box3().setFromObject(m);
+        caixas.push({ x0: b.min.x, x1: b.max.x, y0: 0, y1: b.max.y, z0: b.min.z, z1: b.max.z });
+      }
+    }, undefined, () => {});
+}
+
+// ───────── Safe House: casa, praça com fonte, árvores e postes ─────────
+function mapaCasa() {
+  const MURO = 0xb4553b, BRANCO = 0xf3ead8, TELHA = 0x9c3d2e, MAD = 0x8a5a2b, PEDRA = 0xb8b2a6;
+  const plano = (w, d, cor, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), M(cor));
+    m.rotation.x = -Math.PI / 2; m.position.set(x, y, z);
+    return enfeite(m);
+  };
+  caixa(0, -W, W * 2 + 2, 2, 3, MURO); caixa(0, W, W * 2 + 2, 2, 3, MURO);   // muro baixo em volta
+  caixa(-W, 0, 2, W * 2 + 2, 3, MURO); caixa(W, 0, 2, W * 2 + 2, 3, MURO);
+
+  // casa 16 x 11 com a porta virada pra praça
+  const cz = -21, L = 16, P = 11, A = 3.4, E = 0.4, lado = (L - 2.4) / 2;
+  caixa(0, cz - P / 2, L, E, A, BRANCO);                                         // fundo
+  caixa(-L / 2, cz, E, P, A, BRANCO); caixa(L / 2, cz, E, P, A, BRANCO);         // laterais
+  caixa(-1.2 - lado / 2, cz + P / 2, lado, E, A, BRANCO);                        // frente, com vão de porta no meio
+  caixa(1.2 + lado / 2, cz + P / 2, lado, E, A, BRANCO);
+  caixa(0, cz + P / 2, 2.4, E, A - 2.4, BRANCO, 2.4);                            // verga em cima da porta
+  caixa(2, cz - 2, E, 7, A, BRANCO);                                             // parede da sala pro quarto
+  caixa(0, cz, L, P, 0.2, BRANCO, A);                                            // laje
+  const telhado = new THREE.Mesh(new THREE.ConeGeometry(11.6, 3, 4), M(TELHA));
+  telhado.rotation.y = Math.PI / 4; telhado.scale.z = P / L; telhado.position.set(0, A + 1.7, cz);
+  enfeite(telhado);
+  plano(L - 0.4, P - 0.4, MAD, 0, 0.02, cz);                                     // piso de madeira
+  for (const [x, y] of [[-5.5, 1.6], [5.5, 1.6]]) {                              // janelas da frente
+    const j = cx(2, 1.1, 0.1, new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), x, y, cz + P / 2 + 0.21);
+    enfeite(j);
+  }
+  // sala: sofá, mesinha, tapete e TV
+  caixa(-4.5, cz - 3.8, 4, 1.2, 0.5, 0x3b5b8c); caixa(-4.5, cz - 4.5, 4, 0.4, 1.2, 0x3b5b8c);
+  caixa(-4.5, cz - 1.4, 2.2, 1.1, 0.45, MAD);
+  plano(5, 3.2, 0xa83232, -4.5, 0.03, cz - 1.8);
+  caixa(-4.5, cz + 5, 2.8, 0.2, 1.4, 0x111111, 0.7);
+  enfeite(cx(2.5, 1.1, 0.05, new THREE.MeshBasicMaterial({ color: 0x5eb8ff }), -4.5, 1.4, cz + 4.88));
+  // quarto: cama e estante
+  caixa(5, cz - 3, 2.2, 3.4, 0.55, 0xe5e5e5); caixa(5, cz - 4.55, 2.2, 0.3, 1.1, MAD);
+  caixa(7.5, cz + 2.5, 0.6, 2.4, 2.2, MAD);
+  const luz = new THREE.PointLight(0xffd9a0, 0.9, 16);
+  luz.position.set(0, 3, cz);
+  enfeite(luz);
+
+  // praça
+  enfeite(new THREE.Mesh(new THREE.CircleGeometry(10, 28), M(0x9e978a))).rotation.x = -Math.PI / 2;
+  grupoMapa.children[grupoMapa.children.length - 1].position.y = 0.015;
+  plano(3, 6.5, PEDRA, 0, 0.016, -12.2);                                         // caminho até a porta
+  caixa(0, 0, 4.4, 4.4, 0.7, PEDRA);                                             // fonte: borda
+  plano(3.8, 3.8, 0x4fc3f7, 0, 0.72, 0);                                         // água
+  caixa(0, 0, 0.7, 0.7, 2.2, PEDRA);                                             // coluna
+  const bacia = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.6, 0.4, 10), M(PEDRA));
+  bacia.position.set(0, 2.35, 0);
+  enfeite(bacia);
+  for (const [x, z, w, d] of [[7, 0, 0.7, 2.6], [-7, 0, 0.7, 2.6], [0, 7, 2.6, 0.7], [0, -7.5, 2.6, 0.7]]) {
+    caixa(x, z, w, d, 0.5, MAD);                                                 // bancos
+  }
+  for (const [x, z] of [[-12, -5], [12, -5], [-12, 8], [12, 8], [-25, 15], [25, 15], [-26, -9], [26, -9], [-8, 23], [8, 23], [0, 29], [-29, 29], [29, 29]]) {
+    caixa(x, z, 0.5, 0.5, 2.6, 0x6b4423);                                        // árvores
+    const copa = new THREE.Mesh(new THREE.IcosahedronGeometry(1.7, 0), M(0x3f8f3a));
+    copa.position.set(x, 3.6, z);
+    enfeite(copa);
+    const copa2 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 0), M(0x4caf50));
+    copa2.position.set(x + 0.4, 4.7, z - 0.2);
+    enfeite(copa2);
+  }
+  for (const [x, z] of [[-9.5, -9.5], [9.5, -9.5], [-9.5, 9.5], [9.5, 9.5]]) {
+    caixa(x, z, 0.2, 0.2, 4, 0x333333);                                          // postes
+    enfeite(cx(0.5, 0.25, 0.5, new THREE.MeshBasicMaterial({ color: 0xffe7a3 }), x, 4.1, z));
+  }
+  for (const [x, z, cor] of [[-4, -15, 0xf472b6], [4, -15, 0xfacc15], [-14, 16, 0xf472b6], [14, 16, 0xa78bfa]]) {
+    caixa(x, z, 2.2, 1, 0.35, 0x6b4423);                                         // canteiros
+    for (let i = 0; i < 5; i++) enfeite(cx(0.2, 0.2, 0.2, M(cor), x - 0.8 + i * 0.4, 0.5, z + (i % 2 ? 0.2 : -0.2)));
+  }
+}
+montarMapa('industrial');
 
 // Cabeça do Victor Gomes: a foto (arena-pvp/victor.jpg) é pintada num canvas que vira a
 // textura da cabeça inteira. A cabeça é uma esfera: a faixa da frente do canvas é o rosto,
@@ -438,6 +547,23 @@ function criarModeloCaixas(ci, cor) {
     cabeca.add(bola(0.165, mDet, 0, 0.14, 0.045, 1, 1.12, 1.05));                                           // capuz
     cabeca.add(cx(0.2, 0.045, 0.02, new THREE.MeshBasicMaterial({ color: 0x67e8f9 }), 0, 0.15, -0.146));    // visor
     tronco.add(cil(0.1, 0.13, 0.09, mDet, 0.67), cx(0.07, 0.3, 0.03, mDet, 0.1, 0.5, 0.15));                // cachecol + ponta
+  } else if (c.extra === 'zeus') {                                                                          // Felipe Smite Lime: Zeus
+    const mBranco = M(0xf2f2f2), mOuro = M(0xd4a017), mOlhoR = new THREE.MeshBasicMaterial({ color: 0x9fe8ff });
+    cabeca.add(bola(0.142, mBranco, 0, 0.17, 0.02, 1, 0.85, 1.05));                                         // cabelo branco
+    cabeca.add(bola(0.11, mBranco, 0, 0.0, -0.06, 1.05, 1.15, 0.8));                                        // barba cheia
+    cabeca.add(cx(0.1, 0.02, 0.02, mBranco, 0, 0.075, -0.142));                                            // bigode
+    cabeca.add(cx(0.035, 0.03, 0.02, mOlhoR, -0.055, 0.15, -0.134), cx(0.035, 0.03, 0.02, mOlhoR, 0.055, 0.15, -0.134));   // olhos elétricos
+    const coroa = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.022, 4, 12), mOuro);                        // coroa de louros
+    coroa.rotation.x = Math.PI / 2; coroa.position.y = 0.23;
+    cabeca.add(coroa);
+    for (let i = 0; i < 8; i++) {
+      const f = cx(0.05, 0.02, 0.025, M(0x8fbf3f), Math.sin(i * 0.8) * 0.155, 0.245, Math.cos(i * 0.8) * 0.155);
+      f.rotation.y = i * 0.8;
+      cabeca.add(f);
+    }
+    const faixa = cx(0.07, 0.7, 0.03, mOuro, 0, 0.45, -0.16 * e);                                         // faixa dourada da toga
+    faixa.rotation.z = 0.6;
+    tronco.add(faixa, cx(0.5 * e, 1, 0.03, M(0x3046a8), 0, 0.15, 0.17 * e));                              // + capa azul
   } else if (c.extra === 'robo') {                                                                          // Fonterector
     const mLuz = new THREE.MeshBasicMaterial({ color: 0x67e8f9 }), mNuc = new THREE.MeshBasicMaterial({ color: 0xff8a1f });
     cabeca.children.slice().forEach(m => cabeca.remove(m));                                                 // sem cabeça humana
@@ -559,6 +685,13 @@ function pecasArma(g, ai) {       // mesma arma serve pro boneco e pra visão em
     g.add(cx(0.025, 0.07, 1, M(0xdfe6ee), 0, 0, -0.62));                         // lâmina
     g.add(cx(0.14, 0.14, 0.03, M(0xd4a017), 0, 0, -0.1));                        // guarda
     g.add(cx(0.05, 0.05, 0.3, esc, 0, 0, 0.05));                                 // cabo
+    return;
+  }
+  if (A.raio) {                                                                  // raio dourado na mão do Felipe
+    const mR = new THREE.MeshBasicMaterial({ color: 0xbfe9ff });
+    const p1 = cx(0.05, 0.05, 0.28, mR, 0.03, 0, -0.1), p2 = cx(0.05, 0.05, 0.28, mR, -0.03, 0, -0.32), p3 = cx(0.05, 0.05, 0.22, mR, 0.02, 0, -0.52);
+    p1.rotation.y = 0.5; p2.rotation.y = -0.5; p3.rotation.y = 0.5;
+    g.add(p1, p2, p3, cx(0.07, 0.07, 0.14, M(0xd4a017), 0, 0, 0.06));
     return;
   }
   if (A.missil) {                                                                // canhão de braço do Fonterector
@@ -687,8 +820,8 @@ function animarCaixas(e, t) {
 // Enquanto o arquivo não chega (ou se não chegar), valem os bonecos de caixa (criarModeloCaixas).
 const CLIPES = ['Idle_Loop', 'Walk_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop', 'Crouch_Idle_Loop', 'Crouch_Fwd_Loop', 'Jump_Loop', 'Death01',
   'Dance_Loop', 'Idle_Talking_Loop', 'Sitting_Idle_Loop', 'Pistol_Aim_Neutral', 'Pistol_Aim_Up', 'Pistol_Aim_Down', 'Pistol_Shoot',
-  'Pistol_Reload', 'Sword_Idle', 'Sword_Attack', 'Push_Loop', 'Punch_Jab', 'Spell_Simple_Idle_Loop', 'Spell_Simple_Shoot'];
-const UMA_VEZ = new Set(['Death01', 'Pistol_Shoot', 'Sword_Attack', 'Punch_Jab', 'Spell_Simple_Shoot']);   // tocam uma vez e param
+  'Pistol_Reload', 'Sword_Idle', 'Sword_Attack', 'Push_Loop', 'Punch_Jab', 'Spell_Simple_Idle_Loop', 'Spell_Simple_Shoot', 'Jump_Land', 'Hit_Chest'];
+const UMA_VEZ = new Set(['Death01', 'Pistol_Shoot', 'Sword_Attack', 'Punch_Jab', 'Spell_Simple_Shoot', 'Jump_Land', 'Hit_Chest']);   // tocam uma vez e param
 const DE_BAIXO = /^(root|DEF-hips|DEF-thigh|DEF-shin|DEF-foot|DEF-toe)/;      // ossos da cintura pra baixo
 const ESCALA_BONECO = 1.97 / 1.83;
 let boneco = null;                // { cena, sub: { nome: { sup, inf, dur } } }
@@ -764,6 +897,15 @@ function criarModelo(ci, cor) {
     corte.visible = false;
     raiz.add(corte);
   }
+  if (c.extra === 'zeus') {                        // toga de Zeus: faixa e ombreiras douradas, capa azul
+    const peito = prender('DEF-spine003', new THREE.Group());
+    const faixa = cx(0.07, 0.75, 0.03, M(c.det), 0, -0.05, -0.15);
+    faixa.rotation.z = 0.6;
+    peito.add(faixa, cx(0.18, 0.08, 0.2, M(c.det), -0.24, 0.24, 0), cx(0.18, 0.08, 0.2, M(c.det), 0.24, 0.24, 0));
+    const capa = cx(0.42, 0.95, 0.03, M(0x3046a8), 0, -0.3, 0.17);       // capa mais curta, caindo um pouco pra trás
+    capa.rotation.x = 0.12;
+    peito.add(capa);
+  }
   const mixer = new THREE.AnimationMixer(corpo), sup = {}, inf = {};
   for (const nome in boneco.sub) for (const [parte, mapa] of [['sup', sup], ['inf', inf]]) {
     const a = mixer.clipAction(boneco.sub[nome][parte]);
@@ -784,14 +926,17 @@ function animar(e, t) {
   const dt = Math.min(0.1, Math.max(0, t - (u.tAnt === undefined ? t : u.tAnt)));
   u.tAnt = t;
   const em = vivo && e.st === 0 ? e.em | 0 : 0, tiro = t - e.tTiro;
-  const pernas = !vivo ? 'Death01' : em === 2 ? 'Dance_Loop' : em === 1 ? 'Idle_Talking_Loop' : em === 3 ? 'Sitting_Idle_Loop'
-    : e.st === 3 ? 'Jump_Loop' : e.ag ? (anda ? 'Crouch_Fwd_Loop' : 'Crouch_Idle_Loop')
+  let pernas = !vivo ? 'Death01' : em === 2 ? 'Dance_Loop' : em === 1 ? 'Idle_Talking_Loop' : em === 3 ? 'Sitting_Idle_Loop'
+    : e.st === 3 ? 'Jump_Loop' : e.st === 5 ? 'Crouch_Idle_Loop' : e.ag ? (anda ? 'Crouch_Fwd_Loop' : 'Crouch_Idle_Loop')
     : e.st === 2 ? 'Sprint_Loop' : e.st === 1 ? (zumbi ? 'Walk_Loop' : 'Jog_Fwd_Loop') : 'Idle_Loop';
+  if (u.stAnt === 3 && e.st !== 3 && vivo) { u.tPouso = t; u.inf.Jump_Land.reset(); u.sup.Jump_Land.reset(); }
+  u.stAnt = e.st;
+  if (vivo && !em && e.st !== 3 && !e.ag && t - (u.tPouso || -9) < 0.25) pernas = 'Jump_Land';   // pouso: os joelhos amortecem
   const bracos = {};                               // nome da animação -> quanto ela pesa nos braços
   if (!vivo || em || e.st === 2) bracos[pernas] = 1;                 // corpo inteiro na mesma animação
   else if (zumbi) bracos[tiro >= 0 && tiro < 0.4 ? 'Punch_Jab' : 'Push_Loop'] = 1;
   else if (A.melee) bracos[tiro >= 0 && tiro < 0.5 ? 'Sword_Attack' : 'Sword_Idle'] = 1;
-  else if (A.missil) bracos[tiro >= 0 && tiro < 0.6 ? 'Spell_Simple_Shoot' : 'Spell_Simple_Idle_Loop'] = 1;
+  else if (A.missil || A.raio) bracos[tiro >= 0 && tiro < 0.6 ? 'Spell_Simple_Shoot' : 'Spell_Simple_Idle_Loop'] = 1;
   else if (e.rec) bracos.Pistol_Reload = 1;
   else if (tiro >= 0 && tiro < 0.12) bracos.Pistol_Shoot = 1;
   else {                                           // mira: mistura "neutro" com "pra cima" ou "pra baixo" conforme o olhar
@@ -804,14 +949,20 @@ function animar(e, t) {
     for (const n of ['Pistol_Shoot', 'Sword_Attack', 'Punch_Jab', 'Spell_Simple_Shoot']) { u.sup[n].reset(); u.inf[n].reset(); }
   }
   if (vivo !== u.vivo) { u.vivo = vivo; u.sup.Death01.reset(); u.inf.Death01.reset(); }
-  const k = 1 - Math.exp(-(vivo ? 12 : 25) * dt);
+  if (e.tHit !== u.hitVisto) { u.hitVisto = e.tHit; u.sup.Hit_Chest.reset(); }
+  if (vivo && !em && t - (e.tHit || -9) < 0.3) { for (const n in bracos) delete bracos[n]; bracos.Hit_Chest = 1; }   // levou tiro: o tronco tranca
+  if (u.corte) u.corte.visible = A.melee && tiro >= 0.1 && tiro < 0.3;
+  if (u.clarao) u.clarao.visible = tiro >= 0 && tiro < 0.08;
+  // mais leve: boneco a mais de 30 m anima a ~15 quadros por segundo
+  u.acc = (u.acc || 0) + dt;
+  if (u.acc < 0.066 && e.g.position.distanceToSquared(camera.position) > 900) return;
+  const k = 1 - Math.exp(-(vivo ? 12 : 25) * u.acc);
   for (const n in u.inf) {
     u.inf[n].weight += ((n === pernas ? 1 : 0) - u.inf[n].weight) * k;
     u.sup[n].weight += ((bracos[n] || 0) - u.sup[n].weight) * k;
   }
-  u.mixer.update(dt);
-  if (u.corte) u.corte.visible = A.melee && tiro >= 0.1 && tiro < 0.3;
-  if (u.clarao) u.clarao.visible = tiro >= 0 && tiro < 0.08;
+  u.mixer.update(u.acc);
+  u.acc = 0;
 }
 
 // ───────── Arma em primeira pessoa ─────────
@@ -832,6 +983,12 @@ function montarVM() {             // refaz ao nascer e ao trocar de arma
   vm.add(g, bd, be, vmClarao);
   tSaque = T;
 }
+// katana em primeira pessoa: 3 poses secas por golpe, uma série pra cada golpe do combo [x, y, z, giro x, giro y]
+const POSES_KATANA = [
+  [[0.34, -0.08, -0.5, 1.5, -0.7], [0.02, -0.2, -0.5, 0.2, 0.5], [-0.3, -0.4, -0.45, -0.7, 1.2]],     // da direita pra esquerda
+  [[-0.3, -0.06, -0.5, 1.3, 0.9], [0.02, -0.2, -0.5, 0.2, -0.4], [0.36, -0.38, -0.45, -0.6, -1.1]],    // da esquerda pra direita
+  [[0.15, -0.25, -0.3, 0.1, 0], [0.05, -0.15, -0.75, 0.05, 0], [0.05, -0.15, -0.8, 0.05, 0]],           // estocada
+];
 function brilhoEnergia(raiz, k) {      // acende o emissivo das peças da Pulse Rifle
   raiz.traverse(n => { if (n.userData.energia) n.material.emissiveIntensity = k; });
 }
@@ -840,7 +997,7 @@ function poseVM(dt) {
     const t = T - eu.tTiro, f = Math.floor(t / 0.08);
     const passo = noChao && Math.hypot(vel.x, vel.z) > 0.8 ? [0, -0.02, 0, -0.02][Math.floor(T * 7) % 4] : 0;
     const p = t >= 0 && f < 3
-      ? [[0.34, -0.08, -0.5, 1.5, -0.7], [0.02, -0.2, -0.5, 0.2, 0.5], [-0.3, -0.4, -0.45, -0.7, 1.2]][f]
+      ? POSES_KATANA[eu.combo | 0][f]
       : [0.3, -0.36 + passo, -0.5, 0.5, -0.55];       // parada: lâmina baixa, atravessada
     vm.position.set(p[0], p[1], p[2]);
     vm.rotation.set(p[3], p[4], 0);
@@ -909,6 +1066,7 @@ function ruido(dur, hz, vol) {
 function somTiro(ai, de) {
   const A = ARMAS[ai], d = de ? de.distanceTo(pos) : 0, v = (de ? 0.6 : 1) * Math.max(0, 1 - d / 75);
   if (!A.tiro) { som(A.som, 0.14, 0.12 * v, 'triangle'); return; }
+  if (A.raio) return;                                  // o trovão toca em efeitoRaio
   if (A.energia) {                                    // "piu" de energia: tom que despenca + chiado agudo
     som(1600, 0.16, 0.18 * v, 'square'); som(240, 0.2, 0.25 * v, 'sawtooth'); ruido(0.08, 6000, 0.2 * v);
     return;
@@ -931,7 +1089,11 @@ const outros = new Map();   // id -> entidade (+ alvo, yaw, morto, fora, k, bot?
 const tiros = [];
 const teclas = {};
 const SPAWNS = [[-31, -31], [31, 31], [-31, 31], [31, -31], [-31, 0], [31, 0], [-10, -31], [10, 31]];
-let bloom = 0, recuo = 0, tUltTiro = -9, rajada = 0, tSaque = -9;        // espalhamento acumulado da rajada e coice a devolver
+let bloom = 0, recuo = 0, tUltTiro = -9, rajada = 0, tSaque = -9;
+let tSlide = -9, querDeslizar = false;
+const slideDir = new V3();
+const MODOS = ['arcade', 'ondas', 'safe'];
+const SPAWNS_CASA = [[-10, 2], [10, 2], [0, 12], [-8, -8], [8, -8], [-8, 9], [8, 9], [-14, 0]];        // espalhamento acumulado da rajada e coice a devolver
 let tChao = -9, tPulo = -9, baque = 0, tremor = 0, alvoTravado = 0;
 let liberado = false;                           // classe Fonterector destrancada neste navegador?
 try { liberado = localStorage.getItem('fonterector-robo') === '1'; } catch (e) {}
@@ -960,7 +1122,8 @@ function nascer() {
   if (fora) return;
   let x = 0, z = 0;
   for (let i = 0; i < 20; i++) {              // sorteia um ponto de nascer que não esteja dentro de nada
-    [x, z] = SPAWNS[Math.floor(Math.random() * SPAWNS.length)];
+    const lista = mapaAtual === 'casa' ? SPAWNS_CASA : SPAWNS;
+    [x, z] = lista[Math.floor(Math.random() * lista.length)];
     pos.set(x, 0, z);
     if (!bate(pos)) break;
   }
@@ -978,8 +1141,9 @@ function hud() {
   $('vida').firstChild.style.width = Math.max(0, vida / vidaMax * 100) + '%';
   let t = 'Você ' + abates;
   for (const [id, o] of outros) if (id > -10) t += '  ×  ' + o.k + ' ' + nome(id);
+  if (modo === 'safe') t = 'SAFE HOUSE  ·  ' + (1 + [...outros.keys()].filter(i => i > 0).length) + ' na sala';
   if (modo === 'ondas') t = 'ONDA ' + ondaN + '  ·  FONTERECTOR ' + baseVida + '%  ·  ' + t;
-  $('placar').textContent = modo === 'ondas' || outros.size ? t : 'Sozinho na sala — B chama um bot · Esc abre o menu';
+  $('placar').textContent = modo !== 'arcade' || outros.size ? t : 'Sozinho na sala — B chama um bot · Esc abre o menu';
   const A = ARMAS[armaIdx()];
   if (A.melee) $('municao').innerHTML = (T - tDash > DASH_CD ? 'DASH' : '· · ·') + '<small>KATANA · SHIFT OU BOTÃO DIREITO</small>';
   else $('municao').innerHTML = (tRec > 0 ? '…' : municao[slot]) + ' / ' + A.pente + '<small>' + A.nome.toUpperCase() + (tRec > 0 ? ' · RECARREGANDO' : '') + '</small>';
@@ -1021,7 +1185,7 @@ const depois = (ms, f) => timers.push(setTimeout(f, ms));
 $('logo').innerHTML = [...'FONTERECTOR'].map((l, i) => '<span style="--i:' + i + '">' + l + '</span>').join('');
 
 // três operadores de costas um pro outro em cima do bloco central, só pra pose
-const herois = [[3, 6, 1, 0, 1.3], [5, 8, 0, -1.25, 0.2], [2, 3, 2, 1.25, 0.2]].map(([c, a, cor, x, z]) => {
+const herois = [[3, 6, 1, 0, 1.3], [5, 8, 0, -1.25, 0.2], [6, 10, 2, 1.25, 0.2]].map(([c, a, cor, x, z]) => {
   const h = novaEntidade(CORES[cor]);      // em V, de frente pra câmera, o Victor na ponta
   vestir(h, c, a);
   h.g.position.set(x, 2.2, z);
@@ -1342,7 +1506,7 @@ function desenharLoadout() {
   lista($('lPers'), PERSONAGENS.map((p, i) => [i, p]).filter(x => !x[1].oculto), escolha.c, p => 'Vida ' + p.vida + ' · Velocidade ' + Math.round(p.vel * 100) + '%',
     i => { if (!destrancar(i)) return; escolha.c = i; vitrineArma = armaFixa() !== undefined ? armaFixa() : escolha.p; });
   if (armaFixa() !== undefined) {                 // classe especial: arma travada
-    lista($('lPrim'), [[armaFixa(), ARMAS[armaFixa()]]], armaFixa(), a => 'Dano ' + a.dano + ' · ' + (a.melee ? 'corpo a corpo' : 'teleguiado, explode em área') + ' · arma fixa da classe', () => {});
+    lista($('lPrim'), [[armaFixa(), ARMAS[armaFixa()]]], armaFixa(), a => 'Dano ' + a.dano + ' · ' + (a.melee ? 'corpo a corpo' : a.raio ? 'raio em cadeia' : 'teleguiado, explode em área') + ' · arma fixa da classe', () => {});
     $('lSec').innerHTML = '<span style="font-size:12px;opacity:.7">Sem secundária.</span>';
   } else {
     lista($('lPrim'), armas(0), escolha.p, tArma, i => { escolha.p = i; vitrineArma = i; });
@@ -1394,8 +1558,8 @@ function tratar(m) {
     abrirSalas('Essa sala está cheia (máx. 5). Crie outra ou tente outro código.');
     return;
   }
-  if (m.t === 'quermodo') { if (souHost()) definirModo(m.v === 'ondas' ? 'ondas' : 'arcade'); return; }
-  if (m.t === 'modo') { const v = m.v === 'ondas' ? 'ondas' : 'arcade'; if (v !== modo) { modo = v; aplicarModo(); } return; }
+  if (m.t === 'quermodo') { if (souHost()) definirModo(MODOS.includes(m.v) ? m.v : 'arcade'); return; }
+  if (m.t === 'modo') { const v = MODOS.includes(m.v) ? m.v : 'arcade'; if (v !== modo) { modo = v; aplicarModo(); } return; }
   if (m.t === 'reiniciar') { reiniciar(); return; }
   if (m.t === 'basecaiu') { aviso('O FONTERECTOR CAIU\nVocês chegaram até a onda ' + (m.n | 0), 5000); return; }
   if (m.t === 'querbot') { if (souHost()) mudarBots(m.d); return; }
@@ -1416,12 +1580,13 @@ function tratar(m) {
     return;
   }
   const o = m.id === meuId ? eu : outros.get(m.id) || novoOutro(m.id);     // m.id === meuId: me acertei com a própria explosão
+  if (m.t === 'hit') { const ah = m.to === meuId ? eu : outros.get(m.to); if (ah) ah.tHit = T; }
   if (m.t === 'p') {
     vestir(o, PERSONAGENS[m.c] ? m.c : 1, ARMAS[m.a] ? m.a : 0);   // tolera página antiga/pacote torto
     if (!o.visto) { o.g.position.fromArray(m.p); o.visto = true; }
     o.alvo.fromArray(m.p); o.yaw = m.r; o.pitch = m.x || 0; o.rec = !!m.rc; o.ag = !!m.g; o.em = m.em | 0;
     if (m.id > 0 && m.id < meuId && m.md !== undefined) {       // quem tem id menor manda: modo, onda e vida do Fonterector
-      const v = m.md ? 'ondas' : 'arcade';
+      const v = MODOS[m.md] || 'arcade';
       if (v !== modo) { modo = v; aplicarModo(); }
       if ((m.on | 0) !== ondaN) { ondaN = m.on | 0; if (ondaN) aviso('ONDA ' + ondaN, 2500); hud(); }
       if ((m.bv | 0) !== baseVida) { baseVida = m.bv | 0; hud(); }
@@ -1442,8 +1607,19 @@ function tratar(m) {
     somTiro(8, o.g.position);
   } else if (m.t === 'boom') {
     explosaoRemota(m.mid, new V3().fromArray(m.p));
-  } else if (m.t === 'hit' && m.to === meuId && !morto) {
-    vida -= m.dano; tDano = T;
+  } else if (m.t === 'raio') {
+    efeitoRaio((m.ps || []).map(p => new V3().fromArray(p)));
+    o.tTiro = T;
+  } else if (m.t === 'fx') {
+    const ps = (m.ps || []).map(p => new V3().fromArray(p));
+    if (m.k === 'nevoa') ps.forEach(p => nevoa(p, 0x7c3aed));
+    if (m.k === 'giro' && ps[0]) { anelCorte(ps[0], 0xbfe9ff); o.tTiro = T; }
+    if (m.k === 'furia' && ps[0]) { marcaChao(ps[0], 0x8fd3ff, 0.6); setTimeout(() => quedaRaios(ps[0]), 600); }
+  } else if (m.t === 'skill') {
+    const cor = [0x60a5fa, 0x4ade80][m.c];
+    if (cor) aura(o, cor, 4);
+  } else if (m.t === 'hit' && m.to === meuId && !morto && modo !== 'safe') {
+    vida -= m.dano * (skillAtiva(0) ? 0.4 : 1); tDano = T;      // Brutus com escudo leva 60% menos
     vel.x += m.e[0]; vel.y += m.e[1]; vel.z += m.e[2];
     $('dano').style.opacity = 1;
     setTimeout(() => $('dano').style.opacity = 0, 120);
@@ -1495,6 +1671,8 @@ addEventListener('keydown', e => {
   if (e.code === 'Space') querPular = true;
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyE') querDash = true;
   if (e.code === 'KeyR') recarregar();
+  if (e.code === 'KeyF') usarSkill();
+  if (e.code === 'KeyC') querDeslizar = true;
   if (e.code === 'Digit1') trocar(0);
   if (e.code === 'Digit2') trocar(1);
   if (e.code === 'KeyQ') trocar(1 - slot);
@@ -1582,12 +1760,22 @@ function mover(dt) {
   agachado = !!teclas.KeyC && noChao;       // segurar C (Ctrl não: Ctrl+W fecha a aba do navegador)
   mirando = botaoDir && tRec <= 0 && tTroca <= 0 && !P.dash;
   correndo = !!(teclas.ShiftLeft || teclas.ShiftRight) && a > 0 && !mirando && !atirando && noChao && !P.dash && !agachado;
-  const v = VEL * P.vel * A.mob * (agachado || mirando ? 0.5 : correndo ? 1.5 : 1);
+  const v = VEL * P.vel * A.mob * (agachado || mirando ? 0.5 : correndo ? 1.5 : 1) * (skillAtiva(1) ? 1.35 : 1);
   let wx = fx * a - fz * l, wz = fz * a + fx * l;
   const n = Math.hypot(wx, wz) || 1;
   wx = wx / n * v; wz = wz / n * v;
   const k = 1 - Math.exp(-(noChao ? 12 : 1.2) * dt);   // no ar quase não muda de direção
   vel.x += (wx - vel.x) * k; vel.z += (wz - vel.z) * k;
+  if (querDeslizar && correndo && T - tSlide > 1) {     // correndo + C: desliza no chão
+    tSlide = T;
+    slideDir.set(vel.x, 0, vel.z).normalize();
+    ruido(0.5, 900, 0.18);
+  }
+  querDeslizar = false;
+  if (T - tSlide < 0.7) {
+    const sv = VEL * P.vel * (1.2 + 1.4 * (1 - (T - tSlide) / 0.7));
+    vel.x = slideDir.x * sv; vel.z = slideDir.z * sv; agachado = true; correndo = false;
+  }
   if (P.dash) {                                         // investida: 0,16s a 26 m/s na direção que anda (ou olha)
     if (querDash && T - tDash > DASH_CD) {
       tDash = T;
@@ -1660,24 +1848,149 @@ function armas(dt) {
     hud();
   }
 }
-function golpear(A) {         // katana: acerta quem estiver perto, na frente e sem parede no meio
-  eu.tTiro = T;
-  som(A.som, 0.14, 0.12, 'triangle');
-  mandar({ t: 'tiro', a: armaIdx(), o: arr(pos, 2), ds: [] });   // sem balas: só avisa pros outros animarem o corte
-  $('corte').animate([
-    { opacity: 1, transform: 'rotate(-28deg) translateX(34vmin) scaleX(.3)' },
-    { opacity: 0.9, transform: 'rotate(-28deg) translateX(-6vmin) scaleX(1.2)' },
-    { opacity: 0, transform: 'rotate(-28deg) translateX(-32vmin) scaleX(1.4)' }], { duration: 190 });
-  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+// ───────── Katana: combo de 3 golpes ─────────
+// corte da direita → corte da esquerda → estocada. Golpe seguido em menos de 0,8 s continua o combo.
+let comboN = 0, tUltGolpe = -9;
+const CORTE_CSS = [
+  [['rotate(-28deg) translateX(34vmin) scaleX(.3)', 1], ['rotate(-28deg) translateX(-6vmin) scaleX(1.2)', 0.9], ['rotate(-28deg) translateX(-32vmin) scaleX(1.4)', 0]],
+  [['scaleX(-1) rotate(-22deg) translateX(34vmin) scaleX(.3)', 1], ['scaleX(-1) rotate(-22deg) translateX(-6vmin) scaleX(1.2)', 0.9], ['scaleX(-1) rotate(-22deg) translateX(-32vmin) scaleX(1.4)', 0]],
+  [['rotate(-90deg) scale(.2,.4)', 1], ['rotate(-90deg) scale(.7,1.5)', 0.9], ['rotate(-90deg) scale(.9,1.9)', 0]],
+];
+function golpear(A) {
+  comboN = T - tUltGolpe < 0.8 ? (comboN + 1) % 3 : 0;
+  tUltGolpe = T;
+  eu.tTiro = T; eu.combo = comboN;
+  tCad = comboN === 2 ? 0.55 : 0.3;
+  const dano = [55, 55, 90][comboN], alcance = [3.2, 3.2, 4.2][comboN], abre = [0.35, 0.35, 0.8][comboN];
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw), emp = A.emp * (comboN === 2 ? 1.8 : 1);
+  if (comboN === 2) { vel.x += fx * 9; vel.z += fz * 9; }       // estocada dá um passo à frente
+  som([700, 820, 520][comboN], 0.16, 0.14, 'triangle'); ruido(0.12, 6000, 0.12);
+  mandar({ t: 'tiro', a: armaIdx(), o: arr(pos, 2), fs: [] });   // sem balas: só avisa pros outros animarem o corte
+  $('corte').animate(CORTE_CSS[comboN].map(([transform, opacity]) => ({ transform, opacity })), { duration: comboN === 2 ? 230 : 190 });
+  let acertou = false;
   for (const [id, o] of outros) {
-    if (o.morto || (modo === 'ondas' && id > 0)) continue;      // no modo de defesa não se fere aliado
+    if (o.morto || (modo === 'ondas' && id > 0)) continue;
     const dx = o.g.position.x - pos.x, dz = o.g.position.z - pos.z, d = Math.hypot(dx, dz) || 1;
-    if (d > A.alcance || Math.abs(o.g.position.y - pos.y) > 2.2 || (dx * fx + dz * fz) / d < 0.45 || !visivel(pos, o.g.position)) continue;
-    const m = { t: 'hit', to: id, dano: A.dano, e: [fx * A.emp, 1.5, fz * A.emp] };
-    marcador(false);
-    if (o.bot) danoNoBot(id, o, { ...m, id: meuId }); else mandar(m);
+    if (d > alcance || Math.abs(o.g.position.y - pos.y) > 2.2 || (dx * fx + dz * fz) / d < abre || !visivel(pos, o.g.position)) continue;
+    ferir(meuId, id, { t: 'hit', to: id, dano, e: [fx * emp, 1.5, fz * emp] });
+    marcador(false, dano);
+    sangue(new V3(o.g.position.x, o.g.position.y + 1.2, o.g.position.z), 0xbfe9ff);
+    acertou = true;
+  }
+  if (acertou) { tremor = Math.max(tremor, 0.08); som(160, 0.12, 0.3, 'square'); }   // "peso" do acerto
+}
+
+// ───────── Raio do Felipe Smite Lime ─────────
+const posDe = id => id === meuId ? pos : outros.get(id).g.position;
+function lancarRaio(boca, dir, olho) {
+  const A = ARMAS[10], r = tracar(olho, dir, meuId), pts = [boca.clone(), r.ponto.clone()];
+  if (r.quem) {                                   // acertou: o raio pula pra até 2 inimigos perto, mais fraco a cada pulo
+    let dano = aoAcertar(A, r.t, r.cabeca).dano, atual = r.quem;
+    const ja = new Set([atual]);
+    ferir(meuId, atual, { t: 'hit', to: atual, dano, e: [dir.x * A.emp, 1.2, dir.z * A.emp] });
+    marcador(r.cabeca, dano);
+    for (let salto = 0; salto < 2; salto++) {
+      const de = posDe(atual);
+      let prox = 0, dm = 9;
+      for (const [id, x] of outros) {
+        if (ja.has(id) || x.morto || (modo === 'ondas' && id > 0)) continue;
+        const d = x.g.position.distanceTo(de);
+        if (d < dm && visivel(de, x.g.position)) { dm = d; prox = id; }
+      }
+      if (!prox) break;
+      ja.add(prox); dano *= 0.6; atual = prox;
+      const p = posDe(prox);
+      pts.push(new V3(p.x, p.y + 1.2, p.z));
+      ferir(meuId, prox, { t: 'hit', to: prox, dano, e: [0, 2, 0] });
+      marcador(false, dano);
+    }
+  }
+  efeitoRaio(pts);
+  mandar({ t: 'raio', ps: pts.map(p => arr(p, 2)) });
+}
+
+// ───────── Skills (tecla F) ─────────
+const SKILLS = [
+  { nome: 'Escudo', cd: 14, dur: 4 },              // Brutus: leva 60% menos dano
+  { nome: 'Adrenalina', cd: 16, dur: 4 },          // Recruta: cura 60 e corre 35% mais
+  { nome: 'Salto sombrio', cd: 7 },                // Sombra: teleporta 9 m pra frente
+  { nome: 'Corte giratório', cd: 8 },              // Victor Gomes: 360° em volta
+  null,                                            // Zumbi
+  { nome: 'Salva de mísseis', cd: 18 },            // Fonterector: 5 mísseis em leque
+  { nome: 'Fúria de Zeus', cd: 15 },               // Felipe: chuva de raios onde você mira
+];
+let tSkill = -99, tSkillFim = -99;
+const skillAtiva = c => escolha.c === c && T < tSkillFim;
+function usarSkill() {
+  const S = SKILLS[escolha.c];
+  if (!S || morto || fora || T - tSkill < S.cd) return;
+  tSkill = T; tSkillFim = T + (S.dur || 0);
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  if (escolha.c === 0) { aura(eu, 0x60a5fa, S.dur); som(180, 0.6, 0.3, 'triangle'); mandar({ t: 'skill', c: 0 }); }
+  if (escolha.c === 1) { vida = Math.min(vidaMax, vida + 60); aura(eu, 0x4ade80, S.dur); som(660, 0.3, 0.2, 'sine'); mandar({ t: 'skill', c: 1 }); hud(); }
+  if (escolha.c === 2) {
+    const de = pos.clone(), p = pos.clone();
+    for (let i = 0; i < 18; i++) { p.x += fx * 0.5; p.z += fz * 0.5; if (bate(p)) { p.x -= fx * 0.5; p.z -= fz * 0.5; break; } }
+    pos.copy(p); vel.set(0, 0, 0);
+    nevoa(de, 0x7c3aed); nevoa(pos, 0x7c3aed);
+    mandar({ t: 'fx', k: 'nevoa', ps: [arr(de, 1), arr(pos, 1)] });
+    som(900, 0.3, 0.2, 'sine'); ruido(0.3, 2500, 0.15);
+  }
+  if (escolha.c === 3) giro();
+  if (escolha.c === 5) salva();
+  if (escolha.c === 6) furia();
+}
+function giro() {
+  eu.tTiro = T; eu.combo = 0;
+  anelCorte(pos, 0xbfe9ff);
+  mandar({ t: 'fx', k: 'giro', ps: [arr(pos, 1)] });
+  som(500, 0.3, 0.2, 'sawtooth'); ruido(0.25, 5000, 0.25);
+  for (const [id, o] of outros) {
+    if (o.morto || (modo === 'ondas' && id > 0)) continue;
+    const d = Math.hypot(o.g.position.x - pos.x, o.g.position.z - pos.z) || 1;
+    if (d > 4.5 || Math.abs(o.g.position.y - pos.y) > 2) continue;
+    ferir(meuId, id, { t: 'hit', to: id, dano: 55, e: [(o.g.position.x - pos.x) / d * 7, 3, (o.g.position.z - pos.z) / d * 7] });
+    marcador(false, 55);
+    sangue(new V3(o.g.position.x, o.g.position.y + 1.2, o.g.position.z), 0xbfe9ff);
   }
 }
+function salva() {
+  const alvos = [...outros].filter(([id, o]) => !o.morto && !(modo === 'ondas' && id > 0) && o.g.position.distanceTo(pos) < 60)
+    .sort((a, b) => a[1].g.position.distanceTo(pos) - b[1].g.position.distanceTo(pos)).map(x => x[0]);
+  const f = new V3(0, 0, -1).applyQuaternion(camera.quaternion), q = camera.quaternion.clone(), c = camera.position.clone();
+  for (let i = 0; i < 5; i++) {
+    const d = f.clone().applyAxisAngle(EIXO_Y, (i - 2) * 0.35);
+    d.y += 0.35; d.normalize();
+    const o = c.clone().add(new V3((i - 2) * 0.25, 0.3, 0).applyQuaternion(q));
+    setTimeout(() => {
+      const id = meuId * 1000 + proxMissil++ % 1000, al = alvos.length ? alvos[i % alvos.length] : 0;
+      novoMissil(id, meuId, o, d, al);
+      mandar({ t: 'missil', mid: id, o: arr(o, 2), d: arr(d, 3), al });
+      somTiro(8);
+    }, i * 90);
+  }
+  eu.tTiro = T;
+}
+function furia() {
+  const d = new V3(0, 0, -1).applyQuaternion(camera.quaternion), r = tracar(camera.position, d, meuId);
+  const alvo = r.quem ? posDe(r.quem).clone() : r.t > 45 ? camera.position.clone().addScaledVector(d, 45) : r.ponto.clone();
+  if (!r.quem) alvo.y = Math.max(0, alvo.y - 0.05);
+  marcaChao(alvo, 0x8fd3ff, 0.6);
+  mandar({ t: 'fx', k: 'furia', ps: [arr(alvo, 1)] });
+  eu.tTiro = T;
+  setTimeout(() => {
+    quedaRaios(alvo);
+    for (const [id, o] of outros) {
+      if (o.morto || (modo === 'ondas' && id > 0)) continue;
+      const dd = Math.hypot(o.g.position.x - alvo.x, o.g.position.z - alvo.z);
+      if (dd > 4.5) continue;
+      const dano = 75 * (1 - 0.5 * dd / 4.5);
+      ferir(meuId, id, { t: 'hit', to: id, dano, e: [0, 6, 0] });
+      marcador(false, dano);
+    }
+  }, 600);
+}
+
 function espalhar(base, esp, n) {
   const ds = [];
   for (let i = 0; i < n; i++) {
@@ -1718,7 +2031,10 @@ function tracar(o, d, dono) {     // primeiro obstáculo ou boneco na linha: { t
   return { t, quem, ponto, cabeca: !!quem && ponto.y - base > (baixo ? 1.22 : 1.66) };
 }
 function ferir(dono, quem, m) {   // entrega um acerto decidido por mim (meu tiro ou de um bot meu)
+  if (modo === 'safe') return;                         // Safe House: ninguém se machuca
   if (dono !== meuId) m.b = dono;
+  const alvoH = quem === meuId ? eu : outros.get(quem);
+  if (alvoH) alvoH.tHit = T;
   if (quem === meuId) { tratar({ ...m, id: dono }); return; }
   const alvo = outros.get(quem);
   if (alvo && alvo.bot) danoNoBot(quem, alvo, { ...m, id: dono }); else mandar(m);
@@ -1731,6 +2047,7 @@ function disparar(dono, o, ds, ai, boca) {
     rastro(boca || o, r.ponto, ai);
     if (!r.quem) { faisca(r.ponto, ai); continue; }
     if (A.energia) faisca(r.ponto, ai);
+    sangue(r.ponto, A.cor);
     const g = aoAcertar(A, r.t, r.cabeca);
     if (dono === meuId) marcador(r.cabeca, g.dano);
     ferir(dono, r.quem, { t: 'hit', to: r.quem, dano: g.dano * f, e: [d.x * g.empurrao * f, g.empurrao * 0.3 * f, d.z * g.empurrao * f] });
@@ -1743,6 +2060,7 @@ function atirar(A) {
   const dir = new V3(0, 0, -1).applyQuaternion(camera.quaternion), o = camera.position.clone();
   const boca = new V3(0.2 * (1 - mAds), -0.12 * (1 - mAds) - 0.05 * mAds, -0.4 - (A.boca || 0.5)).applyQuaternion(camera.quaternion).add(o);
   if (A.missil) lancarMissil(boca, dir);
+  else if (A.raio) lancarRaio(boca, dir, o);
   else {
     // 1º tiro quase reto; o espalhamento só abre andando, no ar ou em rajada longa (bloom)
     const andando = Math.hypot(vel.x, vel.z) > 1;
@@ -1768,7 +2086,7 @@ function souHost() {
   return true;
 }
 function pedirBot(d) {
-  if (naTitulo || !ws || modo === 'ondas') return;
+  if (naTitulo || !ws || modo !== 'arcade') return;
   if (souHost()) mudarBots(d); else mandar({ t: 'querbot', d });
 }
 function mudarBots(d) {
@@ -1797,7 +2115,7 @@ function nascerBot(o) {
 function danoNoBot(id, o, m) {
   if (o.morto) return;
   const b = o.bot;
-  b.vida -= m.dano;
+  b.vida -= m.dano; o.tHit = T;
   b.vel.x += m.e[0]; b.vel.y += m.e[1]; b.vel.z += m.e[2];
   if (b.vida <= 0) {
     o.morto = true; o.tMorte = T; b.renasce = 2.5; b.some = 2.2;
@@ -1888,11 +2206,12 @@ function entrarNaSala(cod, modoInicial) {
 }
 
 // ───────── Menu da partida (Esc) ─────────
-const NOME_MODO = { arcade: 'ARCADE — todos contra todos', ondas: 'DEFENDER O FONTERECTOR' };
+const NOME_MODO = { arcade: 'ARCADE — todos contra todos', ondas: 'DEFENDER O FONTERECTOR', safe: 'SAFE HOUSE — lobby, sem dano' };
+const proxModo = () => MODOS[(MODOS.indexOf(modo) + 1) % MODOS.length];
 function abrirMenu() {
   if (fora || naTitulo) return;
   $('menuSala').textContent = 'SALA ' + sala + '  ·  ' + NOME_MODO[modo];
-  $('bModo').textContent = 'Trocar modo para: ' + NOME_MODO[modo === 'ondas' ? 'arcade' : 'ondas'];
+  $('bModo').textContent = 'Trocar modo para: ' + NOME_MODO[proxModo()];
   $('menu').hidden = false;
   atirando = false;
 }
@@ -1906,7 +2225,7 @@ $('menu').addEventListener('click', e => {
   $('menu').hidden = true;
   if (a === 'classe') { abrirLoadout(); return; }
   if (a === 'reiniciar') { mandar({ t: 'reiniciar' }); reiniciar(); }
-  if (a === 'modo') pedirModo(modo === 'ondas' ? 'arcade' : 'ondas');
+  if (a === 'modo') pedirModo(proxModo());
   travarMouse();
 });
 function reiniciar() {
@@ -1932,8 +2251,10 @@ function definirModo(v) {         // só o host: limpa bots e zumbis e avisa a s
 }
 function aplicarModo() {
   monumento.visible = modo === 'ondas';
+  montarMapa(modo === 'safe' ? 'casa' : 'industrial');
+  if (!fora && !morto) nascer();                 // mapa novo: renasce num lugar que existe nele
   abates = 0;
-  aviso(modo === 'ondas' ? 'DEFENDER O FONTERECTOR\nNão deixe os zumbis derrubarem o Fonterector, no centro' : 'MODO ARCADE', 3500);
+  aviso({ ondas: 'DEFENDER O FONTERECTOR\nNão deixe os zumbis derrubarem o Fonterector, no centro', safe: 'SAFE HOUSE\nSem dano. Fica de boa e chama a galera.' }[modo] || 'MODO ARCADE', 3500);
   hud();
 }
 
@@ -2075,7 +2396,7 @@ function rastro(a, b, ai) {
 }
 const geoAnel = new THREE.RingGeometry(0.6, 1, 20);
 function faisca(p, ai) {
-  if (ARMAS[ai] && ARMAS[ai].energia) {              // impacto de energia: anel que abre virado pra câmera + clarão
+  if (ARMAS[ai] && ARMAS[ai].cor) {              // impacto de energia: anel que abre virado pra câmera + clarão
     const c = ARMAS[ai].cor, anel = new THREE.Mesh(geoAnel, new THREE.MeshBasicMaterial({ color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     anel.position.copy(p); anel.lookAt(camera.position);
     efeito(anel, 0.28, k => { anel.scale.setScalar(0.1 + k * 0.6); anel.material.opacity = 1 - k; });
@@ -2183,10 +2504,16 @@ function moverTiros(dt) {
     f.t += dt;
     const k = Math.min(1, f.t / f.dur);
     f.passo(k, dt);
-    if (k >= 1) { cena.remove(f.o); if (f.o.material) f.o.material.dispose(); fx.splice(i, 1); }
+    if (k >= 1) {
+      cena.remove(f.o);
+      if (f.o.material) f.o.material.dispose();
+      if (!f.o.isSprite && f.o.geometry && f.o.geometry !== geoRastro && f.o.geometry !== geoAnel) f.o.geometry.dispose();   // não vaza memória
+      fx.splice(i, 1);
+    }
   }
   luzBoom.intensity *= Math.exp(-10 * dt);
   luzCano.intensity *= Math.exp(-40 * dt);
+  luzRaio.intensity *= Math.exp(-12 * dt);
   for (let i = misseis.length - 1; i >= 0; i--) {
     const ms = misseis[i];
     ms.t += dt;
@@ -2213,6 +2540,88 @@ function moverTiros(dt) {
   }
 }
 
+// ───────── Efeitos do Ato 5: raios, auras, anéis, névoa e respingos ─────────
+const luzRaio = new THREE.PointLight(0xa8dcff, 0, 30);
+cena.add(luzRaio);
+function zigue(a, b, cor, grossura) {       // raio desenhado: segmentos tortos entre a e b, piscando
+  const n = Math.max(3, Math.ceil(a.distanceTo(b) / 1.6)), desvio = 0.5 * Math.min(1, a.distanceTo(b) / 12), pts = [a.clone()];
+  for (let i = 1; i < n; i++) {
+    const p = a.clone().lerp(b, i / n);
+    p.x += (Math.random() - 0.5) * desvio * 2; p.y += (Math.random() - 0.5) * desvio * 2; p.z += (Math.random() - 0.5) * desvio * 2;
+    pts.push(p);
+  }
+  pts.push(b.clone());
+  for (let i = 0; i < pts.length - 1; i++)
+    for (const [c, w, dur] of [[0xffffff, grossura, 0.12], [cor, grossura * 3.5, 0.24]]) {
+      const m = new THREE.Mesh(geoRastro, new THREE.MeshBasicMaterial({ color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      m.position.copy(pts[i]).lerp(pts[i + 1], 0.5); m.lookAt(pts[i + 1]); m.scale.set(w, w, pts[i].distanceTo(pts[i + 1]));
+      efeito(m, dur, k => { m.material.opacity = (1 - k) * (Math.random() < 0.7 ? 1 : 0.2); });
+    }
+}
+function efeitoRaio(pts) {      // pts: [de onde sai, 1º atingido, 2º, ...] — desenha, clareia e troveja
+  for (let i = 0; i < pts.length - 1; i++) { zigue(pts[i], pts[i + 1], 0x8fd3ff, 1.6); faisca(pts[i + 1], 10); }
+  const fim = pts[pts.length - 1], v = Math.max(0, 1 - fim.distanceTo(pos) / 90);
+  luzRaio.position.copy(fim); luzRaio.intensity = 5;
+  ruido(0.12, 7000, 0.5 * v); ruido(1.2, 380, 0.6 * v); som(48, 0.7, 0.4 * v, 'sine');
+}
+function quedaRaios(p) {        // Fúria de Zeus: 3 raios caindo do céu + anel no chão
+  for (let i = 0; i < 3; i++) {
+    const q = new V3(p.x + (Math.random() - 0.5) * 3, p.y, p.z + (Math.random() - 0.5) * 3);
+    setTimeout(() => efeitoRaio([new V3(q.x + (Math.random() - 0.5) * 4, q.y + 28, q.z + (Math.random() - 0.5) * 4), q]), i * 70);
+  }
+  anelCorte(new V3(p.x, p.y - 1, p.z), 0x8fd3ff);
+  tremor = Math.max(tremor, 0.4 * Math.max(0, 1 - p.distanceTo(pos) / 25));
+}
+function marcaChao(p, cor, dur) {          // aviso no chão de onde vai cair
+  const m = new THREE.Mesh(new THREE.RingGeometry(3.8, 4.5, 36), new THREE.MeshBasicMaterial({ color: cor, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  m.rotation.x = -Math.PI / 2; m.position.set(p.x, p.y + 0.06, p.z);
+  efeito(m, dur, k => { m.material.opacity = 0.5 + 0.5 * Math.sin(k * 30); m.scale.setScalar(1.15 - k * 0.15); });
+}
+function anelCorte(p, cor) {               // anéis que abrem em volta (corte giratório, impacto de raio)
+  for (const [r0, dur] of [[1, 0.3], [0.6, 0.42]]) {
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 40), new THREE.MeshBasicMaterial({ color: cor, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    m.rotation.x = -Math.PI / 2; m.position.set(p.x, p.y + 1.1, p.z);
+    efeito(m, dur, k => { m.scale.setScalar(r0 + k * 4); m.material.opacity = 1 - k; });
+  }
+}
+function aura(e, cor, dur) {               // bolha em volta do boneco (escudo, adrenalina)
+  if (e === eu) {                          // em primeira pessoa a bolha atrapalha a visão: vira um brilho na borda da tela
+    $('auraTela').style.setProperty('--c', '#' + cor.toString(16).padStart(6, '0'));
+    $('auraTela').animate([{ opacity: 0.9 }, { opacity: 0.55 }, { opacity: 0 }], { duration: dur * 1000 });
+  }
+  const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 1), new THREE.MeshBasicMaterial({ color: cor, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, wireframe: true }));
+  m.scale.set(0.8, 1.15, 0.8);
+  efeito(m, dur, k => {
+    m.visible = e !== eu || !!emote || morto;
+    m.position.set(e.g.position.x, e.g.position.y + 1.05, e.g.position.z);
+    m.rotation.y += 0.03;
+    m.material.opacity = 0.35 * (1 - k * k) * (0.7 + 0.3 * Math.sin(T * 12));
+  });
+}
+function nevoa(p, cor) {                   // fumaça colorida (salto sombrio)
+  for (let i = 0; i < 10; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChama, color: cor, transparent: true, opacity: 0.7, depthWrite: false }));
+    s.position.set(p.x + (Math.random() - 0.5) * 1.2, p.y + 0.3 + Math.random() * 1.6, p.z + (Math.random() - 0.5) * 1.2);
+    efeito(s, 0.7, (k, dt) => { s.scale.setScalar(0.6 + k * 1.4); s.material.opacity = 0.7 * (1 - k); s.position.y += 0.6 * dt; });
+  }
+}
+function sangue(p, cor) {                  // respingo estilizado onde o tiro/golpe pega no boneco
+  for (let i = 0; i < 7; i++) {
+    const s = new THREE.Sprite(brilho(cor || 0xff3030, 0.9)), v = new V3(Math.random() - 0.5, Math.random() * 0.8, Math.random() - 0.5).multiplyScalar(4);
+    s.position.copy(p); s.scale.setScalar(0.12 + Math.random() * 0.1);
+    efeito(s, 0.35, (k, dt) => { v.y -= 12 * dt; s.position.addScaledVector(v, dt); s.material.opacity = 1 - k; });
+  }
+}
+function atualizarSkill() {
+  const S = SKILLS[escolha.c], el = $('skill');
+  if (!S || fora || !eu) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  const falta = Math.max(0, S.cd - (T - tSkill));
+  el.firstChild.textContent = 'F · ' + S.nome.toUpperCase() + (falta > 0 ? '  ' + Math.ceil(falta) + 's' : '');
+  el.lastChild.style.width = 100 * (1 - falta / S.cd) + '%';
+  el.classList.toggle('pronta', falta <= 0);
+}
+
 // ───────── Loop ─────────
 let antes = performance.now(), envio = 0;
 const deslocCam = new V3();
@@ -2235,14 +2644,14 @@ function quadro(agora) {
     eu.g.position.copy(pos);
     eu.g.rotation.y = yaw;
     eu.pitch = pitch; eu.rec = tRec > 0; eu.ag = agachado; eu.em = emote;
-    eu.st = morto ? 4 : !noChao ? 3 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
+    eu.st = morto ? 4 : !noChao ? 3 : T - tSlide < 0.7 ? 5 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
     if (eu.mod && !fora) animar(eu, T);
     envio -= dt;
     if (envio <= 0) {
       envio = 0.05;
       mandar({ t: 'p', p: arr(pos, 2), r: +yaw.toFixed(2), x: +pitch.toFixed(2), m: fora ? 2 : morto ? 1 : 0, k: abates,
                c: escolha.c, a: armaIdx(), s: eu.st, rc: tRec > 0 ? 1 : 0, g: agachado ? 1 : 0,
-               em: emote, md: modo === 'ondas' ? 1 : 0, on: ondaN, bv: baseVida });
+               em: emote, md: MODOS.indexOf(modo), on: ondaN, bv: baseVida });
       tique++;
       for (const [id, o] of outros)      // zumbis mandam posição 3x mais devagar (são muitos); os caídos, quase nunca
         if (o.bot && (!o.bot.zumbi || (tique % 3 === 0 && (!o.fora || tique % 30 === 0))))
@@ -2283,8 +2692,9 @@ function quadro(agora) {
   } else if (fora) {                    // loadout: boneco girando no bloco central
     vitrine.g.rotation.y = T * 0.9;
     if (vitrine.mod) animar(vitrine, T);
-    camera.position.set(0, 3.6, -4.4);
-    camera.lookAt(0, 3.2, 0);
+    vitrine.g.position.copy(vitrinePos);
+    camera.position.set(vitrinePos.x, vitrinePos.y + 1.4, vitrinePos.z - 4.4);
+    camera.lookAt(vitrinePos.x, vitrinePos.y + 1, vitrinePos.z);
     fov = 55;
   } else {
     const A = ARMAS[armaIdx()];
@@ -2292,7 +2702,7 @@ function quadro(agora) {
     fov = mirando ? A.zoom : correndo ? 82 : T - tDash < 0.2 ? 98 : 75;     // dash estica a visão
     mAds += ((mirando ? 1 : 0) - mAds) * (1 - Math.exp(-14 * dt));
     camera.rotation.set(pitch, yaw, 0);
-    olho += ((agachado ? 1.15 : OLHO) - olho) * (1 - Math.exp(-14 * dt));
+    olho += ((T - tSlide < 0.7 ? 0.95 : agachado ? 1.15 : OLHO) - olho) * (1 - Math.exp(-14 * dt));
     if (emote && !morto) {                                           // emote: a câmera vai pra frente pra você se ver
       camera.position.set(pos.x - Math.sin(yaw) * 3.3, pos.y + 1.6, pos.z - Math.cos(yaw) * 3.3);
       camera.lookAt(pos.x, pos.y + 1.1, pos.z);
@@ -2313,6 +2723,7 @@ function quadro(agora) {
   $('luneta').style.opacity = luneta ? 1 : 0;
   $('mira').classList.toggle('ads', mAds > 0.6 && !luneta);   // mirando: some a bolinha, fica um ponto vermelho em cima da arma
   atualizarTrava();
+  atualizarSkill();
   camera.fov += (fov - camera.fov) * (1 - Math.exp(-14 * dt));
   camera.updateProjectionMatrix();
   renderer.clear();

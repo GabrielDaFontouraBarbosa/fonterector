@@ -2,7 +2,7 @@
 
 Jogo de tiro em primeira pessoa, multiplayer, que roda no navegador. Low poly, até 5 jogadores por sala.
 
-**Ato 3 — Victor Gomes morre de novo.**
+**Ato 5 — Victor Gomes morre de novo.**
 
 ## Rodar
 
@@ -29,22 +29,24 @@ O túnel ganha um endereço novo toda vez que reconecta. O `tunel.py` grava o en
 
 - **Arcade** — todos contra todos, primeiro a 10 abates vence. `B` / `N` chamam e tiram bots.
 - **Defender o Fonterector** — todos juntos contra ondas de zumbis que atacam o obelisco do centro.
+- **Safe House** — lobby: casa, praça com fonte, árvores. Sem dano, pra ficar de boa.
 
 Criar sala gera um link `?sala=XXXX`; quem abrir esse link cai na mesma partida.
 
 ## Classes
 
-| Classe | Vida | Arma |
-|---|---|---|
-| Brutus | 150 | primária + secundária |
-| Recruta | 100 | primária + secundária |
-| Sombra | 75 | primária + secundária |
-| Victor Gomes | 110 | katana, com dash |
-| Fonterector 🔒 | 140 | mísseis teleguiados (senha no loadout) |
+| Classe | Vida | Arma | Skill (`F`) |
+|---|---|---|---|
+| Brutus | 150 | primária + secundária | Escudo: 60% menos dano por 4 s |
+| Recruta | 100 | primária + secundária | Adrenalina: cura 60 e corre mais |
+| Sombra | 75 | primária + secundária | Salto sombrio: teleporta 9 m |
+| Victor Gomes | 110 | katana em combo de 3, com dash | Corte giratório |
+| Fonterector 🔒 | 140 | mísseis teleguiados (senha no loadout) | Salva de 5 mísseis |
+| Felipe Smite Lime | 115 | raio em cadeia (Zeus) | Fúria de Zeus: chuva de raios |
 
 ## Controles
 
-`WASD` anda · `Shift` corre · `Espaço` pula · `C` agacha · clique atira · botão direito mira · `R` recarrega · `1` `2` `Q` troca de arma · `L` loadout · `Esc` menu · `T` `G` `H` emotes
+`WASD` anda · `Shift` corre · `Espaço` pula · `C` agacha · clique atira · botão direito mira · `R` recarrega · `F` skill · `C` correndo desliza · `1` `2` `Q` troca de arma · `L` loadout · `Esc` menu · `T` `G` `H` emotes
 
 ## Arquivos
 
