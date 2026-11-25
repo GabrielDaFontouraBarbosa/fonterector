@@ -38,6 +38,17 @@
   #feed{position:absolute;top:14px;right:16px;text-align:right;font-size:14px;font-weight:600;text-shadow:0 1px 3px #000}
   #aviso{position:absolute;top:34%;left:0;right:0;text-align:center;font-size:28px;font-weight:800;text-shadow:0 2px 8px #000;white-space:pre-line}
   #dano{position:absolute;inset:0;background:radial-gradient(transparent 45%,#f00c);opacity:0;transition:opacity .35s}
+  /* ── Safe House: tecla E, ajuda do jogo, sono e brisa ── */
+  #interagir{position:absolute;left:50%;top:58%;transform:translateX(-50%);padding:6px 14px;display:none;background:#000a;
+    border:1px solid #fff5;border-radius:4px;font:700 15px system-ui,sans-serif;letter-spacing:.06em}
+  #interagir b{color:#fbbf24}
+  #jogoInfo{position:absolute;left:50%;bottom:72px;width:min(92vw,720px);transform:translateX(-50%);text-align:center;font:700 14px system-ui,sans-serif;
+    text-shadow:0 1px 3px #000;white-space:pre-line}
+  #jogoInfo .forca{width:220px;height:8px;margin:6px auto 0;background:#0009;border:1px solid #fff5;border-radius:3px;overflow:hidden}
+  #jogoInfo .forca i{display:block;height:100%;background:linear-gradient(90deg,#4ade80,#facc15,#ef4444)}
+  #sono{position:absolute;inset:0;background:#02030a;opacity:0;transition:opacity 2.5s;display:flex;align-items:center;justify-content:center}
+  #sono b{font:800 44px system-ui,sans-serif;letter-spacing:.5em;color:#c7d2fe;animation:piscar 1.4s ease-in-out infinite alternate}
+  #brisa{position:absolute;inset:0;opacity:0;background:radial-gradient(transparent 35%,#22c55e55 75%,#14532dcc)}
 
   .botao{padding:14px 34px;font:800 clamp(15px,2vw,22px) system-ui,sans-serif;letter-spacing:.2em;color:#fff;
     background:#b91c1c;border:2px solid #fecaca;border-radius:4px;cursor:pointer;box-shadow:0 0 30px #ef4444aa}
@@ -168,7 +179,7 @@
   <h3>ESCOLHA O MODO</h3>
   <button class="op sel" data-modo="arcade"><b>Arcade</b><span>Todos contra todos. Primeiro a 10 abates vence.</span></button>
   <button class="op" data-modo="ondas"><b>Defender o Fonterector</b><span>Juntos contra ondas de zumbis que atacam o Fonterector, no centro.</span></button>
-  <button class="op" data-modo="safe"><b>Safe House</b><span>Lobby: casa, praça e fonte. Sem dano, só pra ficar de boa.</span></button>
+  <button class="op" data-modo="safe"><b>Safe House</b><span>Lobby: casa, praça e fonte. Sem dano. Dá pra dormir, jogar sinuca e dardos, rolar dados e fumar um.</span></button>
   <button id="criarSala" class="botao">CRIAR SALA</button>
   <div class="ou">— ou entre numa sala que já existe —</div>
   <div class="linha"><input id="codigoSala" maxlength="8" placeholder="CÓDIGO" autocomplete="off"><button id="entrarSala" class="op">ENTRAR</button></div>
@@ -182,10 +193,12 @@
   <button class="op" data-a="reiniciar">Reiniciar partida</button>
   <button class="op" data-a="modo" id="bModo"></button>
   <button class="op" data-a="link">Copiar link da sala</button>
-  <div class="dica">Emotes: T aceno · G passinho do Jamal · H senta (mexeu, parou)</div>
+  <div class="dica">Emotes: T aceno · G passinho do Jamal · H senta (mexeu, parou)<br>Safe House: E perto da cama, sinuca, alvo, mesa dos dados ou da mesinha da sala</div>
 </div>
 <div id="hud">
   <div id="dano"></div>
+  <div id="brisa"></div>
+  <div id="sono"><b>Z z z</b></div>
   <div id="auraTela"></div>
   <div id="luneta"></div>
   <div id="corte"></div>
@@ -197,6 +210,8 @@
   <div id="vida"><i></i></div>
   <div id="municao"></div>
   <div id="skill"><b></b><i></i></div>
+  <div id="interagir"></div>
+  <div id="jogoInfo"></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- carregadores de modelo (mesma versão do three): .glb do cenário e .obj/.mtl das armas -->
@@ -375,6 +390,14 @@ function mapaIndustrial() {
 }
 
 // ───────── Safe House: casa, praça com fonte, árvores e postes ─────────
+// Onde fica cada coisa com que dá pra interagir (tecla E). raio = de quão longe a tecla pega.
+const SH = {
+  cama:    { x: 9.5,  z: -25.1, raio: 2.2, txt: 'Dormir' },
+  sinuca:  { x: 0,    z: -22,   raio: 2.7, txt: 'Jogar sinuca' },
+  dardos:  { x: 2.2,  z: -24.5, raio: 1.4, txt: 'Jogar dardos' },
+  dado:    { x: -3.5, z: -18,   raio: 1.9, txt: 'Rolar os dados' },
+  baseado: { x: -8.5, z: -24.8, raio: 2,   txt: 'Fumar um' },
+};
 function mapaCasa() {
   const MURO = 0xb4553b, BRANCO = 0xf3ead8, TELHA = 0x9c3d2e, MAD = 0x8a5a2b, PEDRA = 0xb8b2a6;
   const plano = (w, d, cor, x, y, z) => {
@@ -385,40 +408,46 @@ function mapaCasa() {
   caixa(0, -W, W * 2 + 2, 2, 3, MURO); caixa(0, W, W * 2 + 2, 2, 3, MURO);   // muro baixo em volta
   caixa(-W, 0, 2, W * 2 + 2, 3, MURO); caixa(W, 0, 2, W * 2 + 2, 3, MURO);
 
-  // casa 16 x 11 com a porta virada pra praça
-  const cz = -21, L = 16, P = 11, A = 3.4, E = 0.4, lado = (L - 2.4) / 2;
+  // casa 24 x 12 com a porta virada pra praça: sala de TV à esquerda, sala de jogos no meio, quarto à direita
+  const cz = -22, L = 24, P = 12, A = 3.4, E = 0.4, lado = (L - 2.4) / 2;
   caixa(0, cz - P / 2, L, E, A, BRANCO);                                         // fundo
   caixa(-L / 2, cz, E, P, A, BRANCO); caixa(L / 2, cz, E, P, A, BRANCO);         // laterais
   caixa(-1.2 - lado / 2, cz + P / 2, lado, E, A, BRANCO);                        // frente, com vão de porta no meio
   caixa(1.2 + lado / 2, cz + P / 2, lado, E, A, BRANCO);
   caixa(0, cz + P / 2, 2.4, E, A - 2.4, BRANCO, 2.4);                            // verga em cima da porta
-  caixa(2, cz - 2, E, 7, A, BRANCO);                                             // parede da sala pro quarto
+  caixa(5, cz - 2.5, E, 7, A, BRANCO);                                           // parede do quarto (o alvo de dardos fica nela)
   caixa(0, cz, L, P, 0.2, BRANCO, A);                                            // laje
-  const telhado = new THREE.Mesh(new THREE.ConeGeometry(11.6, 3, 4), M(TELHA));
-  telhado.rotation.y = Math.PI / 4; telhado.scale.z = P / L; telhado.position.set(0, A + 1.7, cz);
+  const telhado = new THREE.Mesh(new THREE.ConeGeometry((L / 2 + 0.2) * Math.SQRT2, 3.4, 4), M(TELHA));
+  telhado.rotation.y = Math.PI / 4; telhado.scale.z = P / L; telhado.position.set(0, A + 1.9, cz);
   enfeite(telhado);
   plano(L - 0.4, P - 0.4, MAD, 0, 0.02, cz);                                     // piso de madeira
-  for (const [x, y] of [[-5.5, 1.6], [5.5, 1.6]]) {                              // janelas da frente
-    const j = cx(2, 1.1, 0.1, new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), x, y, cz + P / 2 + 0.21);
+  for (const x of [-8, 8]) {                                                     // janelas da frente
+    const j = cx(2, 1.1, 0.1, new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), x, 1.6, cz + P / 2 + 0.21);
     enfeite(j);
   }
-  // sala: sofá, mesinha, tapete e TV
-  caixa(-4.5, cz - 3.8, 4, 1.2, 0.5, 0x3b5b8c); caixa(-4.5, cz - 4.5, 4, 0.4, 1.2, 0x3b5b8c);
-  caixa(-4.5, cz - 1.4, 2.2, 1.1, 0.45, MAD);
-  plano(5, 3.2, 0xa83232, -4.5, 0.03, cz - 1.8);
-  caixa(-4.5, cz + 5, 2.8, 0.2, 1.4, 0x111111, 0.7);
-  enfeite(cx(2.5, 1.1, 0.05, new THREE.MeshBasicMaterial({ color: 0x5eb8ff }), -4.5, 1.4, cz + 4.88));
-  // quarto: cama e estante
-  caixa(5, cz - 3, 2.2, 3.4, 0.55, 0xe5e5e5); caixa(5, cz - 4.55, 2.2, 0.3, 1.1, MAD);
-  caixa(7.5, cz + 2.5, 0.6, 2.4, 2.2, MAD);
-  const luz = new THREE.PointLight(0xffd9a0, 0.9, 16);
-  luz.position.set(0, 3, cz);
+  // sala de TV: sofá encostado no fundo, mesinha com o cinzeiro, tapete e TV no rack
+  caixa(-8.5, cz - 5, 4, 1.2, 0.5, 0x3b5b8c); caixa(-8.5, cz - 5.6, 4, 0.4, 1.2, 0x3b5b8c);
+  caixa(SH.baseado.x, SH.baseado.z, 2.2, 1.1, 0.45, MAD);
+  plano(5, 3.2, 0xa83232, -8.5, 0.03, cz - 3);
+  caixa(-8.5, cz + 1.6, 2.8, 0.5, 0.6, MAD);
+  caixa(-8.5, cz + 1.6, 2.6, 0.12, 1.4, 0x111111, 0.6);
+  enfeite(cx(2.4, 1.2, 0.05, new THREE.MeshBasicMaterial({ color: 0x5eb8ff }), -8.5, 1.3, cz + 1.51));
+  // quarto: cama de casal, travesseiro, coberta, criado-mudo com abajur e estante
+  caixa(9.5, -26.15, 2.2, 2.3, 0.55, 0xe5e5e5); caixa(9.5, -27.45, 2.2, 0.3, 1.1, MAD);
+  enfeite(cx(1.3, 0.14, 0.5, M(0xffffff), 9.5, 0.62, -26.9));
+  enfeite(cx(2.26, 0.06, 1.5, M(0x6d28d9), 9.5, 0.58, -25.7));
+  caixa(11.3, -27.3, 0.8, 0.8, 0.6, MAD);
+  enfeite(cx(0.3, 0.35, 0.3, new THREE.MeshBasicMaterial({ color: 0xfff1c1 }), 11.3, 0.8, -27.3));
+  caixa(11.5, -18.5, 0.6, 2.4, 2.2, MAD);
+  const luz = new THREE.PointLight(0xffd9a0, 0.9, 22);
+  luz.position.set(-6, 3, cz);
   enfeite(luz);
+  montarJogosCasa();
 
   // praça
   enfeite(new THREE.Mesh(new THREE.CircleGeometry(10, 28), M(0x9e978a))).rotation.x = -Math.PI / 2;
   grupoMapa.children[grupoMapa.children.length - 1].position.y = 0.015;
-  plano(3, 6.5, PEDRA, 0, 0.016, -12.2);                                         // caminho até a porta
+  plano(3, 7, PEDRA, 0, 0.016, -12.5);                                           // caminho até a porta
   caixa(0, 0, 4.4, 4.4, 0.7, PEDRA);                                             // fonte: borda
   plano(3.8, 3.8, 0x4fc3f7, 0, 0.72, 0);                                         // água
   caixa(0, 0, 0.7, 0.7, 2.2, PEDRA);                                             // coluna
@@ -766,6 +795,10 @@ function animarCaixas(e, t) {
     gira = [0.4, 0.15, -0.4, -0.15][q4] * (q8 < 4 ? 1 : -1);
     ladoX = [0.07, 0.03, -0.07, -0.03][q4];
   }
+  if (em === 4) {                                       // deitado de barriga pra cima (cama), respirando
+    coxa = [0, 0]; joe = [0.08, 0.08]; incl = 0; gira = 0;
+    desce = 0.01 * Math.sin(tt * 1.4); cair = Math.PI / 2; sobe = 0.68;
+  }
 
   // braços: [giro pra dentro, elevação, cotovelo]
   const tiro = t - e.tTiro;
@@ -774,6 +807,7 @@ function animarCaixas(e, t) {
   else if (em === 1) { D = [-0.25, 2.7 + (q8 % 2) * 0.3, 0.4 + (q8 % 2) * 0.5]; E = [0, 0.1, 0.2]; }          // aceno
   else if (em === 2) { const s = q4 < 2 ? 1 : -1; D = [0.35, 1 + s * 0.45, 1.5]; E = [-0.35, 1 - s * 0.45, 1.5]; }
   else if (em === 3) { const w = q4 < 2 ? 0 : 0.35; D = [-1.25, 1.57, 2.1 - w]; E = [1.25, 1.57, 2.1 - w]; }  // bíceps
+  else if (em === 4) { D = [0.15, 0.1, 0.3]; E = [-0.15, 0.1, 0.3]; }                                         // braços do lado do corpo
   else if (e.a === 7) {                                 // zumbi: braços esticados; dá um tapa ao atacar
     const bate = tiro < 0.25;
     D = [0.1, bate ? 0.8 : 1.45 + bal * 0.3, 0.15]; E = [-0.1, bate ? 2 : 1.5 - bal * 0.3, 0.2];
@@ -921,6 +955,7 @@ function criarModelo(ci, cor) {
 // Escolhe a animação das pernas pelo movimento e a dos braços pela arma, e mistura aos poucos.
 function animar(e, t) {
   const u = e.mod.userData;
+  if (u.armaG) u.armaG.visible = e.em !== 4;      // dormindo, a arma fica guardada
   if (!u.esq) { animarCaixas(e, t); return; }
   const A = ARMAS[e.a] || ARMAS[0], vivo = e.st !== 4, anda = e.st === 1 || e.st === 2, zumbi = e.a === 7;
   const dt = Math.min(0.1, Math.max(0, t - (u.tAnt === undefined ? t : u.tAnt)));
@@ -953,6 +988,9 @@ function animar(e, t) {
   if (vivo && !em && t - (e.tHit || -9) < 0.3) { for (const n in bracos) delete bracos[n]; bracos.Hit_Chest = 1; }   // levou tiro: o tronco tranca
   if (u.corte) u.corte.visible = A.melee && tiro >= 0.1 && tiro < 0.3;
   if (u.clarao) u.clarao.visible = tiro >= 0 && tiro < 0.08;
+  const deitado = em === 4, kd = 1 - Math.exp(-8 * dt);          // cama: o corpo todo deita de costas em cima do colchão
+  e.mod.rotation.x += ((deitado ? Math.PI / 2 : 0) - e.mod.rotation.x) * kd;
+  e.mod.position.y += ((deitado ? 0.68 : 0) - e.mod.position.y) * kd;
   // mais leve: boneco a mais de 30 m anima a ~15 quadros por segundo
   u.acc = (u.acc || 0) + dt;
   if (u.acc < 0.066 && e.g.position.distanceToSquared(camera.position) > 900) return;
@@ -973,6 +1011,7 @@ const vmAlvo = new V3();
 let vmCoice = 0;
 function montarVM() {             // refaz ao nascer e ao trocar de arma
   while (vm.children.length) vm.remove(vm.children[0]);
+  if (atividade === 'dardos' || baseado) { montarItemVM(); return; }      // na mão: dardo ou baseado (Safe House)
   const ai = armaIdx(), A = ARMAS[ai], mBraco = M(eu ? eu.cor : CORES[0]), g = new THREE.Group();
   pecasArma(g, ai);
   const longa = A.comp > 0.5 && !A.melee;     // arma longa: mão esquerda vai lá na frente
@@ -993,6 +1032,7 @@ function brilhoEnergia(raiz, k) {      // acende o emissivo das peças da Pulse 
   raiz.traverse(n => { if (n.userData.energia) n.material.emissiveIntensity = k; });
 }
 function poseVM(dt) {
+  if (atividade === 'dardos' || baseado) { poseItemVM(); return; }
   if (ARMAS[armaIdx()].melee) {         // katana: erguida, ou 3 poses secas de corte (sem suavizar)
     const t = T - eu.tTiro, f = Math.floor(t / 0.08);
     const passo = noChao && Math.hypot(vel.x, vel.z) > 0.8 ? [0, -0.02, 0, -0.02][Math.floor(T * 7) % 4] : 0;
@@ -1115,6 +1155,10 @@ const armaIdx = () => armaFixa() !== undefined ? armaFixa() : slot === 0 ? escol
 let querDash = false, tDash = -9, dashPronto = true, agachado = false, olho = OLHO;
 let modo = 'arcade', ondaN = 0, baseVida = 100;      // modo da sala; onda e vida do Fonterector vêm do host
 let emote = 0, tEmoteFim = 0, tique = 0;
+// Safe House. atividade prende o jogador num lugar: 'cama' · 'sinuca' · 'dardos' (o dado e o baseado não prendem).
+let atividade = null, tAtiv = 0, dormiu = false;
+const posAntes = new V3();
+let baseado = 0, tPuxada = -9, chapado = 0;   // puxadas que faltam · quando puxou · nível da brisa (0 a 5)
 const dashDir = new V3(), DASH_CD = 2.5;
 const nome = id => id === meuId ? 'Você' : id <= -10 ? 'Zumbi' : id < 0 ? 'Bot' + (-id) : 'J' + id;
 
@@ -1129,6 +1173,7 @@ function nascer() {
   }
   vel.set(0, 0, 0); bloom = 0; recuo = 0;
   yaw = Math.atan2(x, z); pitch = 0;      // olhando pro centro
+  atividade = null; baseado = 0; $('sono').style.opacity = 0;
   vidaMax = PERSONAGENS[escolha.c].vida; vida = vidaMax;
   slot = 0; tRec = 0; tTroca = 0; tCad = 0;
   municao = [ARMAS[armaFixa() !== undefined ? armaFixa() : escolha.p].pente, ARMAS[escolha.s].pente];
@@ -1618,6 +1663,16 @@ function tratar(m) {
   } else if (m.t === 'skill') {
     const cor = [0x60a5fa, 0x4ade80][m.c];
     if (cor) aura(o, cor, 4);
+  } else if (m.t === 'sinuca') {
+    receberSinuca(m.b);
+  } else if (m.t === 'dardo' && mapaAtual === 'casa' && Array.isArray(m.o) && Array.isArray(m.p)) {
+    voarDardo(new V3().fromArray(m.o), new V3().fromArray(m.p), o.cor, g => setTimeout(() => grupoMapa.remove(g), 8000));
+  } else if (m.t === 'dardos') {
+    feed(nome(m.id) + ' fez ' + (m.n | 0) + ' pontos nos dardos');
+  } else if (m.t === 'dado' && mapaAtual === 'casa' && Array.isArray(m.r) && Array.isArray(m.o)) {
+    rolarDados(m.r.slice(0, 2).map(v => Math.min(6, Math.max(1, v | 0))), m.s | 0, new V3().fromArray(m.o), m.id);
+  } else if (m.t === 'fumou' && Array.isArray(m.p) && Array.isArray(m.d)) {
+    baforada(new V3().fromArray(m.p), new V3().fromArray(m.d));
   } else if (m.t === 'hit' && m.to === meuId && !morto && modo !== 'safe') {
     vida -= m.dano * (skillAtiva(0) ? 0.4 : 1); tDano = T;      // Brutus com escudo leva 60% menos
     vel.x += m.e[0]; vel.y += m.e[1]; vel.z += m.e[2];
@@ -1668,6 +1723,8 @@ addEventListener('keydown', e => {
   teclas[e.code] = true;
   if (e.code === 'Space') e.preventDefault();
   if (e.repeat) return;
+  if (e.code === 'KeyE' && interagir()) return;       // Safe House: E perto de algo = usar; longe = dash
+  if (atividade) return;                              // deitado, na mesa ou no alvo: o resto das teclas não vale
   if (e.code === 'Space') querPular = true;
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyE') querDash = true;
   if (e.code === 'KeyR') recarregar();
@@ -1691,7 +1748,7 @@ addEventListener('mouseup', e => {
   if (e.button === 2) botaoDir = false;
 });
 addEventListener('contextmenu', e => e.preventDefault());
-addEventListener('wheel', () => trocar(1 - slot));
+addEventListener('wheel', () => { if (!baseado && !atividade) trocar(1 - slot); });
 document.addEventListener('pointerlockchange', () => {
   const travado = document.pointerLockElement === tela;
   if (!travado) { atirando = false; botaoDir = false; }
@@ -1760,7 +1817,7 @@ function mover(dt) {
   agachado = !!teclas.KeyC && noChao;       // segurar C (Ctrl não: Ctrl+W fecha a aba do navegador)
   mirando = botaoDir && tRec <= 0 && tTroca <= 0 && !P.dash;
   correndo = !!(teclas.ShiftLeft || teclas.ShiftRight) && a > 0 && !mirando && !atirando && noChao && !P.dash && !agachado;
-  const v = VEL * P.vel * A.mob * (agachado || mirando ? 0.5 : correndo ? 1.5 : 1) * (skillAtiva(1) ? 1.35 : 1);
+  const v = VEL * P.vel * A.mob * (agachado || mirando ? 0.5 : correndo ? 1.5 : 1) * (skillAtiva(1) ? 1.35 : 1) * (1 - 0.06 * chapado);
   let wx = fx * a - fz * l, wz = fz * a + fx * l;
   const n = Math.hypot(wx, wz) || 1;
   wx = wx / n * v; wz = wz / n * v;
@@ -1801,12 +1858,13 @@ function mover(dt) {
 // ───────── Armas ─────────
 function recarregar() {
   const A = ARMAS[armaIdx()];
-  if (morto || tRec > 0 || municao[slot] >= A.pente) return;
+  if (morto || baseado || tRec > 0 || municao[slot] >= A.pente) return;
   tRec = A.rec; rajada = 0;
   som(500, 0.06, 0.05, 'square');
   hud();
 }
 function trocar(s) {
+  if (baseado) { apagarBaseado(); return; }          // trocar de arma apaga o baseado
   if (morto || s === slot || armaFixa() !== undefined) return;
   slot = s; tRec = 0; tTroca = 0.45;
   vestir(eu, escolha.c, armaIdx());
@@ -1815,6 +1873,10 @@ function trocar(s) {
 }
 function armas(dt) {
   const A = ARMAS[armaIdx()];
+  if (baseado) {                                        // segurando o baseado: o clique puxa em vez de atirar
+    if (atirando && gatilho && T - tPuxada > 1.8) { gatilho = false; puxar(); }
+    return;
+  }
   tCad -= dt; tTroca -= dt;
   bloom *= Math.exp(-7 * dt);                           // a rajada "fecha" de novo em uma fração de segundo
   if (recuo > 0.0005 && T - tUltTiro > 0.16) {          // soltou o gatilho: a mira desce o que o coice subiu
@@ -2251,10 +2313,11 @@ function definirModo(v) {         // só o host: limpa bots e zumbis e avisa a s
 }
 function aplicarModo() {
   monumento.visible = modo === 'ondas';
+  atividade = null; baseado = 0; $('sono').style.opacity = 0;      // a casa vai sumir: larga a sinuca, a cama, o baseado
   montarMapa(modo === 'safe' ? 'casa' : 'industrial');
   if (!fora && !morto) nascer();                 // mapa novo: renasce num lugar que existe nele
   abates = 0;
-  aviso({ ondas: 'DEFENDER O FONTERECTOR\nNão deixe os zumbis derrubarem o Fonterector, no centro', safe: 'SAFE HOUSE\nSem dano. Fica de boa e chama a galera.' }[modo] || 'MODO ARCADE', 3500);
+  aviso({ ondas: 'DEFENDER O FONTERECTOR\nNão deixe os zumbis derrubarem o Fonterector, no centro', safe: 'SAFE HOUSE\nSem dano. Entra na casa e aperta E nas coisas.' }[modo] || 'MODO ARCADE', 3500);
   hud();
 }
 
@@ -2365,8 +2428,8 @@ function pensarZumbi(id, o, dt) {
 }
 
 // ───────── Emotes ─────────
-function emotar(n) {              // 1 aceno · 2 passinho do Jamal · 3 bíceps
-  if (morto || fora) return;
+function emotar(n) {              // 1 aceno · 2 passinho do Jamal · 3 bíceps  (4 = deitado, só a cama usa)
+  if (morto || fora || atividade) return;
   emote = n;
   tEmoteFim = T + [0, 2.5, 1e9, 3][n];      // o passinho só para quando você se mexe
 }
@@ -2622,6 +2685,599 @@ function atualizarSkill() {
   el.classList.toggle('pronta', falta <= 0);
 }
 
+// ───────── Safe House: cama, sinuca, dardos, dados e o baseado ─────────
+// Tudo roda em quem está jogando, que manda o resultado pra sala: posição das bolas, dardo
+// cravado, valor dos dados, fumaça. Não depende do host. As peças moram em grupoMapa,
+// então somem sozinhas quando o mapa troca.
+const MESA = { x: SH.sinuca.x, z: SH.sinuca.z, y: 0.8, hx: 1.2, hz: 0.6, r: 0.045, bolso: 0.1 };   // hx/hz: meia-mesa por dentro das tabelas
+const BOLSOS = [[-1.2, -0.6], [0, -0.63], [1.2, -0.6], [-1.2, 0.6], [0, 0.63], [1.2, 0.6]];
+const ALVO = { x: 4.765, y: 1.73, z: SH.dardos.z, R: 0.28 };     // R = raio da área que pontua (borda do duplo)
+const NUMS_DARDO = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+const MESA_DADO = { x: SH.dado.x, z: SH.dado.z, y: 0.78 };
+const FRASES_BRISA = ['', 'Tá batendo…', 'Chapadinho', 'Muito louco', 'Bateu a larica', 'NA LUA'];
+let sinuca = null, dados = [], dadosFim = null, ultInfo = '', ultPerto = null, tFumaca = 0, tRonco = 0;
+const voos = [];                 // dardos voando
+const jogoDardo = { n: 0, total: 0, tLanc: -9, recorde: 0, meus: [], rodada: 0 };
+const tmpC = new V3(), tmpD = new V3();
+const geoBola = new THREE.SphereGeometry(MESA.r, 14, 10), geoDado = new THREE.BoxGeometry(0.14, 0.14, 0.14);
+
+function montarJogosCasa() {      // chamada pelo mapaCasa
+  montarSinuca();
+  // alvo de dardos na parede do quarto, virado pra sala de jogos, e a linha de arremesso no chão
+  enfeite(cx(0.03, 0.95, 0.95, M(0x3b2a1a), ALVO.x + 0.02, ALVO.y, ALVO.z));
+  const alvo = new THREE.Mesh(new THREE.CircleGeometry(ALVO.R * 256 / 200, 40), new THREE.MeshLambertMaterial({ map: texAlvo() }));
+  alvo.rotation.y = -Math.PI / 2; alvo.position.set(ALVO.x, ALVO.y, ALVO.z);
+  enfeite(alvo);
+  enfeite(cx(0.06, 0.01, 0.8, M(0xeeeeee), ALVO.x - 2.37, 0.03, ALVO.z));
+  // mesa dos dados com dois bancos
+  caixa(MESA_DADO.x, MESA_DADO.z, 1.3, 1.3, MESA_DADO.y, 0x5b3a1a);
+  enfeite(cx(1.2, 0.01, 1.2, M(0x1e3a8a), MESA_DADO.x, MESA_DADO.y + 0.005, MESA_DADO.z));     // feltro azul
+  caixa(MESA_DADO.x - 1.1, MESA_DADO.z, 0.5, 0.5, 0.45, MAD_CASA); caixa(MESA_DADO.x + 1.1, MESA_DADO.z, 0.5, 0.5, 0.45, MAD_CASA);
+  // mesinha da sala: cinzeiro, isqueiro e o baseado
+  const b = SH.baseado, y = 0.45;
+  const cinz = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.04, 10), M(0x334155));
+  cinz.position.set(b.x + 0.3, y + 0.02, b.z); enfeite(cinz);
+  const bas = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.009, 0.11, 6), M(0xf5f0e1));
+  bas.rotation.z = Math.PI / 2; bas.position.set(b.x + 0.3, y + 0.05, b.z); enfeite(bas);
+  enfeite(cx(0.025, 0.06, 0.04, M(0xdc2626), b.x - 0.2, y + 0.03, b.z + 0.15));                  // isqueiro
+  const luz = new THREE.PointLight(0xfff1c1, 0.7, 9);                                          // luminária em cima da sinuca
+  luz.position.set(MESA.x, 2.6, MESA.z); enfeite(luz);
+  enfeite(cx(1.6, 0.12, 0.4, M(0x166534), MESA.x, 2.9, MESA.z));
+  dados = []; dadosFim = null; voos.length = 0; jogoDardo.meus = []; jogoDardo.n = 0; jogoDardo.total = 0;
+}
+const MAD_CASA = 0x8a5a2b;
+
+// ── interação (tecla E) ──
+function pontoPerto() {
+  if (mapaAtual !== 'casa' || morto || fora || pos.y > 1) return null;
+  let melhor = null, dm = 1e9;
+  for (const k in SH) {
+    const p = SH[k], d = Math.hypot(pos.x - p.x, pos.z - p.z);
+    if (d < p.raio && d < dm) { dm = d; melhor = k; }
+  }
+  return melhor;
+}
+function interagir() {
+  if (morto || fora || mapaAtual !== 'casa') return false;
+  if (atividade) { sairAtividade(); return true; }
+  const k = pontoPerto();
+  if (!k) { if (baseado) { apagarBaseado(); return true; } return false; }
+  if (k === 'baseado') { if (baseado) apagarBaseado(); else acender(); return true; }
+  if (k === 'dado') { jogarDados(); return true; }
+  entrarAtividade(k);
+  return true;
+}
+function entrarAtividade(k) {
+  posAntes.copy(pos);
+  atividade = k; tAtiv = T; dormiu = false; emote = 0;
+  vel.set(0, 0, 0); correndo = false; agachado = false; mirando = false; atirando = false;
+  if (k === 'cama') {
+    pos.set(SH.cama.x, 0, SH.cama.z); yaw = Math.PI;       // pés na beira, cabeça no travesseiro
+    $('sono').style.opacity = 0.88;
+    tRonco = T + 2;
+  } else if (k === 'dardos') {
+    pos.set(SH.dardos.x, 0, SH.dardos.z); yaw = -Math.PI / 2; pitch = 0.05;   // de frente pro alvo
+    limparRodada();
+  } else if (k === 'sinuca') {
+    const br = sinuca.bolas[0];
+    yaw = Math.atan2(-(MESA.x + br.x - pos.x), -(MESA.z + br.z - pos.z)); pitch = -0.6;   // olhando pra branca, de onde estava
+    sinuca.forca = 0;
+  }
+  montarVM();
+}
+function sairAtividade() {
+  if (!atividade) return;
+  const a = atividade;
+  atividade = null;
+  pos.copy(posAntes); vel.set(0, 0, 0);
+  if (a === 'cama') yaw += Math.PI;
+  if (a === 'dardos') limparRodada();
+  if (a === 'sinuca') { sinuca.forca = 0; pitch = 0; }
+  $('sono').style.opacity = 0;
+  querPular = false; querDash = false; querDeslizar = false; atirando = false;
+  montarVM();
+}
+function atualizarAtividade(dt) {                  // roda no lugar de mover() e armas()
+  vel.set(0, 0, 0); tChao = T; noChao = true;
+  if (atividade === 'cama') {
+    if (teclas.KeyW || teclas.KeyA || teclas.KeyS || teclas.KeyD || teclas.Space) { sairAtividade(); return; }
+    if (!dormiu && T - tAtiv > 4) {
+      dormiu = true; vida = vidaMax; chapado = 0; hud();
+      aviso('Dormiu igual um anjo.\nAcordou novo em folha.', 3000);
+    }
+    if (T > tRonco) { tRonco = T + 2.6; som(70, 0.9, 0.05, 'sawtooth'); }   // ronco
+  } else if (atividade === 'dardos') {
+    if (atirando && gatilho) { gatilho = false; lancarDardo(); }
+  } else if (atividade === 'sinuca') {
+    const S = sinuca, br = S.bolas[0], pode = br.on && !S.local;
+    if (atirando && pode) S.forca = Math.min(1, S.forca + dt * 0.75);
+    else if (S.forca > 0) { if (S.forca > 0.04 && pode) tacar(S.forca); S.forca = 0; }
+    // o boneco fica na beira da mesa, atrás da branca, olhando pra onde vai a tacada
+    const dx = -Math.sin(yaw), dz = -Math.cos(yaw), hx = MESA.hx + 0.6, hz = MESA.hz + 0.6;
+    const bx = br.on ? br.x : 0, bz = br.on ? br.z : 0;
+    const tx = dx > 0 ? (bx + hx) / dx : dx < 0 ? (bx - hx) / dx : 1e9, tz = dz > 0 ? (bz + hz) / dz : dz < 0 ? (bz - hz) / dz : 1e9;
+    const t = Math.min(tx, tz);
+    pos.set(MESA.x + bx - dx * t, 0, MESA.z + bz - dz * t);
+  }
+}
+function cameraAtividade(fov) {
+  if (atividade === 'cama') {
+    camera.position.set(SH.cama.x - 1.7, 2.2, SH.cama.z - 0.2);
+    camera.lookAt(SH.cama.x, 0.6, SH.cama.z - 1.1);
+    return 60;
+  }
+  if (atividade === 'dardos') {                     // mão balança: a mira passeia (e passeia muito mais chapado)
+    const b = 1 + chapado * 0.9;
+    camera.rotation.set(pitch + (Math.sin(T * 1.7) * 0.006 + Math.sin(T * 3.1) * 0.003) * b, yaw + (Math.sin(T * 1.3) * 0.008 + Math.sin(T * 2.3) * 0.004) * b, 0);
+    camera.position.set(pos.x, OLHO, pos.z);
+    return 50;
+  }
+  const br = sinuca.bolas[0], dx = -Math.sin(yaw), dz = -Math.cos(yaw), baixa = Math.max(0, -pitch);
+  const x = MESA.x + (br.on ? br.x : 0), z = MESA.z + (br.on ? br.z : 0), d = 1.1 + baixa * 0.6;
+  camera.position.set(x - dx * d, MESA.y + 0.3 + baixa * 1.5, z - dz * d);    // mouse pra baixo = câmera mais alta
+  camera.lookAt(x + dx * 0.5, MESA.y, z + dz * 0.5);
+  return 70;
+}
+
+// Roda todo quadro: animações da casa, ajuda na tela, fumaça do baseado na mão
+function atualizarCasa(dt) {
+  if (mapaAtual === 'casa') {
+    if (sinuca) atualizarSinuca(dt);
+    animarDados(dt);
+    for (let i = voos.length - 1; i >= 0; i--) {
+      const v = voos[i];
+      v.t += dt;
+      const k = Math.min(1, v.t / 0.32), k2 = Math.min(1, k + 0.05);
+      v.g.position.lerpVectors(v.de, v.ate, k); v.g.position.y += Math.sin(Math.PI * k) * 0.1;
+      tmpC.lerpVectors(v.de, v.ate, k2); tmpC.y += Math.sin(Math.PI * k2) * 0.1;
+      if (k < 1) v.g.lookAt(tmpC);
+      else {
+        voos.splice(i, 1);
+        som(260, 0.06, 0.12 * Math.max(0.2, 1 - v.ate.distanceTo(pos) / 20), 'square');   // tóc
+        if (v.fim) v.fim(v.g);
+      }
+    }
+  }
+  if (baseado && !atividade && !morto && T > tFumaca) {     // fiapo de fumaça saindo da ponta
+    tFumaca = T + 0.14;
+    tmpC.set(0.17, -0.06, -0.42).applyQuaternion(camera.quaternion).add(camera.position);
+    fumacinha(tmpC);
+  }
+  // ajuda na tela
+  const perto = atividade || baseado ? null : pontoPerto();
+  if (perto !== ultPerto) {
+    ultPerto = perto;
+    $('interagir').style.display = perto ? 'block' : 'none';
+    if (perto) $('interagir').innerHTML = '<b>E</b> ' + SH[perto].txt;
+  }
+  let info = '';
+  if (atividade === 'cama') info = 'Dormindo…  ·  WASD ou E acorda';
+  else if (atividade === 'dardos') info = 'DARDOS  ·  mira com o mouse, clique joga  ·  E sai\nDardo ' + Math.min(3, jogoDardo.n + 1) + ' de 3  ·  ' + jogoDardo.total + ' pontos' + (jogoDardo.recorde ? '  ·  recorde ' + jogoDardo.recorde : '');
+  else if (atividade === 'sinuca') {
+    const fora = sinuca.bolas.filter(b => b.n && !b.on).length;
+    info = 'SINUCA  ·  mouse mira (pra baixo vê de cima)  ·  segure o clique pra dar força  ·  E sai\nNa caçapa: ' + fora + ' de 15' +
+      '<div class="forca"><i style="width:' + Math.round(sinuca.forca * 100) + '%"></i></div>';
+  } else if (baseado) info = 'BASEADO  ·  clique puxa (' + baseado + (baseado > 1 ? ' puxadas' : ' puxada') + ')  ·  E apaga';
+  if (info !== ultInfo) { ultInfo = info; $('jogoInfo').innerHTML = info; }
+  $('mira').style.display = atividade === 'cama' || atividade === 'sinuca' ? 'none' : '';
+  $('municao').style.visibility = atividade || baseado ? 'hidden' : '';
+}
+
+// ── sinuca ──
+const CORES_BOLA = ['#ffffff', '#facc15', '#1d4ed8', '#dc2626', '#7c3aed', '#f97316', '#15803d', '#7f1d1d', '#111111'];
+function matBola(n) {             // 1 a 8 lisas, 9 a 15 listradas (faixa colorida no "equador" da textura)
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 32;
+  const g = c.getContext('2d'), cor = CORES_BOLA[n > 8 ? n - 8 : n];
+  g.fillStyle = n > 8 ? '#f5f5f0' : cor; g.fillRect(0, 0, 64, 32);
+  if (n > 8) { g.fillStyle = cor; g.fillRect(0, 9, 64, 14); }
+  if (n) {
+    for (const x of [16, 48]) {
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x, 16, 5, 0, 7); g.fill();
+      g.fillStyle = '#000'; g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(n, x, 16.5);
+    }
+  }
+  return new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(c) });
+}
+function montarSinuca() {
+  const { x, z, y } = MESA;
+  caixa(x, z, 2.8, 1.6, y, 0x4a2c14);                                          // corpo da mesa (é nele que se colide)
+  const pano = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.2), M(0x166534));
+  pano.rotation.x = -Math.PI / 2; pano.position.set(x, y + 0.002, z);
+  enfeite(pano);
+  const mB = M(0x5b3a1a);
+  enfeite(cx(2.8, 0.07, 0.2, mB, x, y + 0.035, z - 0.7)); enfeite(cx(2.8, 0.07, 0.2, mB, x, y + 0.035, z + 0.7));   // tabelas
+  enfeite(cx(0.2, 0.07, 1.2, mB, x - 1.3, y + 0.035, z)); enfeite(cx(0.2, 0.07, 1.2, mB, x + 1.3, y + 0.035, z));
+  const mPreto = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  for (const [bx, bz] of BOLSOS) {
+    const b = new THREE.Mesh(new THREE.CircleGeometry(MESA.bolso, 12), mPreto);
+    b.rotation.x = -Math.PI / 2; b.position.set(x + bx, y + 0.075, z + bz);
+    enfeite(b);
+  }
+  const bolas = [];
+  for (let n = 0; n < 16; n++) bolas.push({ n, m: enfeite(new THREE.Mesh(geoBola, matBola(n))), x: 0, z: 0, ax: 0, az: 0, vx: 0, vz: 0, on: true });
+  // taco: a ponta fica na origem do grupo e o resto vai pra trás (-z); lookAt aponta o +z pra branca
+  const taco = new THREE.Group(), vara = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.015, 1.3, 6), M(0xd9b48a));
+  vara.rotation.x = Math.PI / 2; vara.position.z = -0.65;
+  taco.add(vara);
+  const geoLinha = new THREE.BoxGeometry(0.005, 0.002, 1);
+  geoLinha.translate(0, 0, 0.5);
+  const linha = new THREE.Mesh(geoLinha, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 }));
+  enfeite(taco); enfeite(linha);
+  sinuca = { bolas, taco, linha, forca: 0, local: false, tEnvio: 0, tTic: 0 };
+  arrumarBolas();
+}
+function arrumarBolas() {         // triângulo no pé da mesa, branca na cabeceira
+  const b = sinuca.bolas, R = MESA.r + 0.001, ordem = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+  let i = 0;
+  for (let fila = 0; fila < 5; fila++) for (let j = 0; j <= fila; j++)
+    Object.assign(b[ordem[i++]], { x: 0.55 + fila * R * 1.75, z: (j - fila / 2) * R * 2 });
+  Object.assign(b[0], { x: -0.6, z: 0 });
+  for (const bo of b) {
+    Object.assign(bo, { ax: bo.x, az: bo.z, vx: 0, vz: 0, on: true });
+    bo.m.position.set(MESA.x + bo.x, MESA.y + MESA.r, MESA.z + bo.z);
+  }
+}
+function tacar(f) {
+  const S = sinuca, br = S.bolas[0], v = 0.25 + f * 3.8;
+  br.vx = -Math.sin(yaw) * v; br.vz = -Math.cos(yaw) * v;
+  S.local = true; S.tEnvio = 0;
+  som(140 + f * 220, 0.07, 0.25, 'square'); ruido(0.04, 3000, 0.25);
+}
+function passoSinuca(dt) {        // física 2D em cima do pano, em passinhos de ~4 ms
+  const S = sinuca, R = MESA.r, b = S.bolas, n = Math.ceil(dt / 0.004), h = dt / n;
+  let mexendo = false;
+  for (let s = 0; s < n; s++) {
+    for (const bo of b) {
+      if (!bo.on) continue;
+      const v = Math.hypot(bo.vx, bo.vz);
+      if (v > 0) {
+        const nv = v - (0.3 + 0.45 * v) * h;                 // atrito de rolar + arrasto
+        if (nv < 0.012) { bo.vx = bo.vz = 0; continue; }
+        bo.vx *= nv / v; bo.vz *= nv / v;
+        mexendo = true;
+      } else continue;
+      bo.x += bo.vx * h; bo.z += bo.vz * h;
+      if (BOLSOS.some(([px, pz]) => Math.hypot(bo.x - px, bo.z - pz) < MESA.bolso)) { encacapar(bo); continue; }
+      if (bo.x > MESA.hx - R) { bo.x = MESA.hx - R; bo.vx = -Math.abs(bo.vx) * 0.78; tic(v); }   // tabelas
+      if (bo.x < -MESA.hx + R) { bo.x = -MESA.hx + R; bo.vx = Math.abs(bo.vx) * 0.78; tic(v); }
+      if (bo.z > MESA.hz - R) { bo.z = MESA.hz - R; bo.vz = -Math.abs(bo.vz) * 0.78; tic(v); }
+      if (bo.z < -MESA.hz + R) { bo.z = -MESA.hz + R; bo.vz = Math.abs(bo.vz) * 0.78; tic(v); }
+    }
+    for (let i = 0; i < b.length; i++) for (let j = i + 1; j < b.length; j++) {   // bola com bola: choque elástico, mesma massa
+      const p = b[i], q = b[j];
+      if (!p.on || !q.on) continue;
+      const dx = q.x - p.x, dz = q.z - p.z, d = Math.hypot(dx, dz);
+      if (d >= 2 * R || d === 0) continue;
+      const nx = dx / d, nz = dz / d, sobra = (2 * R - d) / 2;
+      p.x -= nx * sobra; p.z -= nz * sobra; q.x += nx * sobra; q.z += nz * sobra;
+      const vn = (p.vx - q.vx) * nx + (p.vz - q.vz) * nz;
+      if (vn <= 0) continue;
+      const k = vn * 0.97;
+      p.vx -= k * nx; p.vz -= k * nz; q.vx += k * nx; q.vz += k * nz;
+      tic(vn * 2);
+      mexendo = true;
+    }
+  }
+  return mexendo;
+}
+function tic(v) {                 // estalinho de bola batendo (limitado, senão vira metralhadora)
+  if (v < 0.15 || T - sinuca.tTic < 0.04) return;
+  sinuca.tTic = T;
+  som(1700, 0.03, Math.min(0.12, v * 0.04), 'sine');
+}
+function encacapar(bo) {
+  bo.on = false; bo.vx = bo.vz = 0;
+  som(180, 0.15, 0.12, 'sine');
+  aviso(bo.n ? 'Bola ' + bo.n + ' na caçapa!' : 'Branca na caçapa!', 1200);
+}
+function fimDaTacada() {
+  const b = sinuca.bolas, br = b[0];
+  if (!br.on) {                   // branca caiu: volta pra cabeceira, num lugar livre
+    for (const z of [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45]) {
+      if (b.every(o => !o.on || Math.hypot(o.x + 0.6, o.z - z) > 2.1 * MESA.r)) { Object.assign(br, { x: -0.6, z, ax: -0.6, az: z, on: true }); break; }
+    }
+  }
+  if (b.every(o => !o.n || !o.on)) {
+    aviso('MESA LIMPA!\nArrumando de novo…', 2500);
+    setTimeout(() => { if (sinuca && sinuca.bolas === b) { arrumarBolas(); mandarSinuca(); } }, 2500);
+  }
+  mandarSinuca();
+}
+function mandarSinuca() { mandar({ t: 'sinuca', b: sinuca.bolas.map(o => [+o.x.toFixed(3), +o.z.toFixed(3), o.on ? 1 : 0]) }); }
+function receberSinuca(lista) {   // tacada de outro: segue as posições que ele manda (10x por segundo)
+  if (!sinuca || mapaAtual !== 'casa' || !Array.isArray(lista)) return;
+  sinuca.local = false;
+  lista.forEach((v, i) => {
+    const bo = sinuca.bolas[i];
+    if (!bo || !Array.isArray(v)) return;
+    const on = !!v[2];
+    bo.ax = Math.max(-MESA.hx, Math.min(MESA.hx, +v[0] || 0)); bo.az = Math.max(-MESA.hz, Math.min(MESA.hz, +v[1] || 0));
+    if (on && !bo.on) { bo.x = bo.ax; bo.z = bo.az; }
+    bo.on = on; bo.vx = bo.vz = 0;
+  });
+}
+function atualizarSinuca(dt) {
+  const S = sinuca;
+  if (S.local) {
+    const mexendo = passoSinuca(dt);
+    for (const bo of S.bolas) { bo.ax = bo.x; bo.az = bo.z; }
+    S.tEnvio -= dt;
+    if (S.tEnvio <= 0) { S.tEnvio = 0.1; mandarSinuca(); }
+    if (!mexendo) { S.local = false; fimDaTacada(); }
+  } else {
+    const k = 1 - Math.exp(-14 * dt);
+    for (const bo of S.bolas) { bo.x += (bo.ax - bo.x) * k; bo.z += (bo.az - bo.z) * k; }
+  }
+  for (const bo of S.bolas) {     // a bola de verdade rola: gira em volta do eixo de lado ao andar
+    bo.m.visible = bo.on;
+    if (!bo.on) continue;
+    const m = bo.m.position, nx = MESA.x + bo.x, nz = MESA.z + bo.z, dx = nx - m.x, dz = nz - m.z, d = Math.hypot(dx, dz);
+    if (d > 1e-5 && d < 0.3) bo.m.rotateOnWorldAxis(tmpD.set(dz / d, 0, -dx / d), d / MESA.r);
+    m.set(nx, MESA.y + MESA.r, nz);
+  }
+  const br = S.bolas[0], mira = atividade === 'sinuca' && br.on && !S.local;
+  S.taco.visible = S.linha.visible = mira;
+  if (mira) {
+    const dx = -Math.sin(yaw), dz = -Math.cos(yaw), recua = MESA.r + 0.03 + S.forca * 0.3;
+    S.taco.position.set(br.m.position.x - dx * recua, MESA.y + MESA.r + 0.015, br.m.position.z - dz * recua);
+    S.taco.lookAt(br.m.position);
+    S.linha.position.copy(br.m.position);
+    S.linha.lookAt(br.m.position.x + dx, br.m.position.y, br.m.position.z + dz);
+    S.linha.scale.z = 0.9;
+  }
+}
+
+// ── dardos ──
+function texAlvo() {              // alvo oficial desenhado num canvas: 20 em cima, anéis de duplo e triplo
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const g = c.getContext('2d'), C = 256, R = 200, f = Math.PI / 10;
+  g.fillStyle = '#111'; g.beginPath(); g.arc(C, C, 256, 0, 7); g.fill();
+  const anel = (r0, r1, cores) => {
+    for (let i = 0; i < 20; i++) {
+      const a = -Math.PI / 2 + (i - 0.5) * f;
+      g.fillStyle = cores[i % 2];
+      g.beginPath(); g.arc(C, C, r1 * R, a, a + f); g.arc(C, C, r0 * R, a + f, a, true); g.closePath(); g.fill();
+    }
+  };
+  anel(0.953, 1, ['#c8102e', '#1f7a3a']); anel(0.629, 0.953, ['#151515', '#f1e6c8']);
+  anel(0.582, 0.629, ['#c8102e', '#1f7a3a']); anel(0.094, 0.582, ['#151515', '#f1e6c8']);
+  g.fillStyle = '#1f7a3a'; g.beginPath(); g.arc(C, C, 0.094 * R, 0, 7); g.fill();
+  g.fillStyle = '#c8102e'; g.beginPath(); g.arc(C, C, 0.037 * R, 0, 7); g.fill();
+  g.fillStyle = '#eee'; g.font = 'bold 30px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  NUMS_DARDO.forEach((n, i) => { const a = -Math.PI / 2 + i * f; g.fillText(n, C + Math.cos(a) * 228, C + Math.sin(a) * 228); });
+  return new THREE.CanvasTexture(c);
+}
+function pontosDardo(u, v) {      // u = pra direita, v = pra cima, em raios da área que pontua
+  const r = Math.hypot(u, v);
+  if (r > 1) return [0, 'Fora!'];
+  if (r < 0.037) return [50, 'NA MOSCA! 50'];
+  if (r < 0.094) return [25, 'Bull! 25'];
+  const n = NUMS_DARDO[((Math.round(Math.atan2(u, v) / (Math.PI / 10)) % 20) + 20) % 20];
+  if (r > 0.953) return [n * 2, 'Duplo ' + n + '! ' + n * 2];
+  if (r > 0.582 && r < 0.629) return [n * 3, 'TRIPLO ' + n + '! ' + n * 3];
+  return [n, '' + n];
+}
+function novoDardo(cor) {         // ponta na origem, corpo pra trás (-z): lookAt aponta a ponta. Maior que o de verdade, pra se ver de longe.
+  const g = new THREE.Group(), aco = M(0x9ca3af), pena = M(cor || 0xef4444);
+  g.scale.setScalar(1.6);
+  const corpo = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 5), aco);
+  corpo.rotation.x = Math.PI / 2; corpo.position.z = -0.07;
+  const ponta = new THREE.Mesh(new THREE.ConeGeometry(0.004, 0.03, 5), aco);
+  ponta.rotation.x = Math.PI / 2; ponta.position.z = -0.015;
+  g.add(corpo, ponta, cx(0.002, 0.04, 0.05, pena, 0, 0, -0.15), cx(0.04, 0.002, 0.05, pena, 0, 0, -0.15));
+  return g;
+}
+function voarDardo(de, ate, cor, fim) {
+  const g = enfeite(novoDardo(cor));
+  g.position.copy(de);
+  voos.push({ g, de: de.clone(), ate: ate.clone(), t: 0, fim });
+}
+function lancarDardo() {
+  const J = jogoDardo;
+  if (J.n >= 3 || T - J.tLanc < 0.6) return;
+  const dir = tmpD.set(0, 0, -1).applyQuaternion(camera.quaternion);
+  if (dir.x < 0.2) return;                                 // olhando pro lado: nem joga
+  const o = camera.position, p = o.clone().addScaledVector(dir, (ALVO.x - o.x) / dir.x);
+  p.y -= 0.005 + Math.random() * 0.015; p.z += (Math.random() - 0.5) * 0.012;   // um tico de queda e de mão tremida
+  p.x = ALVO.x - 0.005;
+  const [pts, txt] = pontosDardo((p.z - ALVO.z) / ALVO.R, (p.y - ALVO.y) / ALVO.R);
+  const de = new V3(0.14, -0.12, -0.3).applyQuaternion(camera.quaternion).add(o);
+  J.n++; J.tLanc = T;
+  const rodada = J.rodada;
+  ruido(0.12, 2500, 0.08);
+  voarDardo(de, p, eu.cor, g => {
+    if (rodada !== J.rodada) { grupoMapa.remove(g); return; }
+    J.meus.push(g); J.total += pts;
+    aviso(txt, 900);
+    if (J.n === 3) fimRodada();
+  });
+  mandar({ t: 'dardo', o: arr(de, 2), p: arr(p, 3) });
+}
+function fimRodada() {
+  const J = jogoDardo, tot = J.total, rodada = J.rodada, rec = tot > J.recorde;
+  J.recorde = Math.max(J.recorde, tot);
+  setTimeout(() => aviso('RODADA: ' + tot + ' PONTOS' + (rec && tot > 0 ? '\nRECORDE!' : ''), 2000), 700);
+  mandar({ t: 'dardos', n: tot });
+  setTimeout(() => { if (J.rodada === rodada) limparRodada(); }, 2600);
+}
+function limparRodada() {
+  const J = jogoDardo;
+  J.meus.forEach(g => grupoMapa.remove(g));
+  J.meus = []; J.n = 0; J.total = 0; J.rodada++;
+}
+
+// ── dados ──
+// O valor é sorteado antes; a animação (com semente, igual em todo mundo) só termina com a face certa pra cima.
+const FACES_DADO = [2, 5, 1, 6, 3, 4];                   // ordem das faces da BoxGeometry: +x, -x, +y, -y, +z, -z
+const NORMAL_DADO = { 1: [0, 1, 0], 6: [0, -1, 0], 2: [1, 0, 0], 5: [-1, 0, 0], 3: [0, 0, 1], 4: [0, 0, -1] };
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+let matsDado = null;
+function materiaisDado() {
+  if (matsDado) return matsDado;
+  matsDado = FACES_DADO.map(v => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    g.fillStyle = '#f8f8f4'; g.fillRect(0, 0, 64, 64);
+    g.fillStyle = v === 1 ? '#c8102e' : '#111';
+    for (const i of PIPS[v]) { g.beginPath(); g.arc(14 + (i % 3) * 18, 14 + Math.floor(i / 3) * 18, v === 1 ? 9 : 6, 0, 7); g.fill(); }
+    return new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(c) });
+  });
+  return matsDado;
+}
+function sorteio(s) {             // gerador com semente (mulberry32): todo mundo vê o mesmo arremesso
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function jogarDados() {
+  if (dadosFim && T < dadosFim.tFim + 0.3) return;        // ainda rolando
+  const r = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)], s = Math.floor(Math.random() * 1e9);
+  const o = new V3(-Math.sin(yaw) * 0.4, 0, -Math.cos(yaw) * 0.4).add(pos);
+  o.y = 1.3;
+  rolarDados(r, s, o, meuId);
+  mandar({ t: 'dado', r, s, o: arr(o, 2) });
+}
+function rolarDados(vals, seed, de, quem) {
+  for (const d of dados) grupoMapa.remove(d.m);
+  const rnd = sorteio(seed), topo = MESA_DADO.y + 0.07;
+  dados = vals.map((v, i) => {
+    const m = enfeite(new THREE.Mesh(geoDado, materiaisDado()));
+    const fim = new V3(MESA_DADO.x + (i ? 0.2 : -0.2) + (rnd() - 0.5) * 0.2, topo, MESA_DADO.z + (rnd() - 0.5) * 0.5);
+    const qFim = new THREE.Quaternion().setFromUnitVectors(new V3().fromArray(NORMAL_DADO[v]), EIXO_Y)
+      .premultiply(new THREE.Quaternion().setFromAxisAngle(EIXO_Y, rnd() * Math.PI * 2));
+    const eixo = new V3(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize();
+    m.position.copy(de);
+    return { m, ini: de.clone().add(new V3(i ? 0.1 : -0.1, 0, 0)), fim, qFim, eixo, giro: 14 + rnd() * 10, t: -i * 0.06, quique: -1 };
+  });
+  dadosFim = { vals, quem, tFim: T + 1.7, visto: false };
+}
+function animarDados(dt) {
+  for (const d of dados) {
+    d.t += dt;
+    const k = Math.max(0, Math.min(1, d.t / 1.6));
+    d.m.position.lerpVectors(d.ini, d.fim, 1 - (1 - k) * (1 - k));
+    if (k < 0.3) {                // voa da mão até a mesa num arco
+      const s = k / 0.3;
+      d.m.position.y = d.ini.y + (d.fim.y - d.ini.y) * s * s + Math.sin(Math.PI * s) * 0.25;
+    } else {                      // três quiques cada vez menores
+      const kk = (k - 0.3) / 0.7, q = Math.min(2, Math.floor(kk * 3));
+      d.m.position.y = d.fim.y + Math.abs(Math.sin(kk * Math.PI * 3)) * 0.16 * (1 - kk) * (1 - kk);
+      if (q > d.quique && k < 1) { d.quique = q; som(900 - q * 150, 0.04, 0.1 * (1 - kk) + 0.02, 'square'); }   // toc na mesa
+    }
+    d.m.quaternion.setFromAxisAngle(d.eixo, d.giro * Math.pow(1 - k, 3)).multiply(d.qFim);
+  }
+  if (dadosFim && !dadosFim.visto && T >= dadosFim.tFim) {
+    dadosFim.visto = true;
+    const [a, b] = dadosFim.vals, txt = a + ' + ' + b + ' = ' + (a + b) + (a === b ? '  ·  DUPLA!' : '');
+    if (dadosFim.quem === meuId) aviso('DADOS\n' + txt, 3000);
+    else feed(nome(dadosFim.quem) + ' rolou ' + txt);
+  }
+}
+
+// ── baseado ──
+let vmBrasa = null, vmBrilho = null;
+function acender() {
+  baseado = 6; tPuxada = -9; gatilho = false;
+  ruido(0.12, 5000, 0.15); setTimeout(() => ruido(0.4, 1200, 0.08), 150);     // isqueiro: risco e chama
+  aviso('Acendeu um\nClique puxa  ·  E apaga', 2200);
+  montarVM();
+}
+function apagarBaseado() {
+  if (!baseado) return;
+  baseado = 0;
+  aviso('Apagou o baseado', 1200);
+  montarVM();
+}
+function puxar() {
+  tPuxada = T;
+  const fim = --baseado === 0;
+  ruido(1.1, 700, 0.06);                                   // chiadinho da brasa
+  setTimeout(() => {
+    if (morto) return;
+    const d = new V3(0, 0, -1).applyQuaternion(camera.quaternion), p = camera.position.clone().addScaledVector(d, 0.25);
+    p.y -= 0.08;
+    if (atividade) { p.copy(pos); p.y = OLHO - 0.1; d.set(-Math.sin(yaw), 0, -Math.cos(yaw)); }
+    baforada(p, d);
+    mandar({ t: 'fumou', p: arr(p, 2), d: arr(d, 2) });
+    if (Math.random() < 0.3) for (let i = 0; i < 3; i++) setTimeout(() => ruido(0.12, 900, 0.18), i * 230);   // cof cof cof
+    const antes = Math.ceil(chapado);
+    chapado = Math.min(5, chapado + 1);
+    if (Math.ceil(chapado) !== antes || chapado >= 5) aviso(FRASES_BRISA[Math.ceil(chapado)], 1800);
+    if (fim) { setTimeout(() => aviso('O baseado acabou', 1500), 1900); montarVM(); }
+  }, 1150);
+}
+function baforada(p, d) {         // nuvem que sai da boca, vai pra frente e sobe devagar
+  for (let i = 0; i < 9; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChama, color: 0xd4d4d8, transparent: true, opacity: 0, depthWrite: false }));
+    const v = d.clone().multiplyScalar(0.5 + Math.random() * 0.6).add(new V3((Math.random() - 0.5) * 0.3, 0.12 + Math.random() * 0.2, (Math.random() - 0.5) * 0.3));
+    s.position.copy(p);
+    const dur = 2.6 + Math.random();
+    efeito(s, dur, (k, dt) => {
+      s.material.opacity = 0.42 * Math.min(1, k * 6) * (1 - k);
+      s.scale.setScalar(0.12 + k * (1.2 + i * 0.05));
+      s.position.addScaledVector(v, dt * (1 - k * 0.7));
+    });
+  }
+}
+function fumacinha(p) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChama, color: 0xcbd5e1, transparent: true, opacity: 0.2, depthWrite: false }));
+  s.position.copy(p);
+  efeito(s, 1.6, (k, dt) => { s.material.opacity = 0.2 * (1 - k); s.scale.setScalar(0.03 + k * 0.25); s.position.y += 0.35 * dt; s.position.x += Math.sin(T * 3 + k * 5) * 0.05 * dt; });
+}
+function aplicarBrisa(fov, dt, jogando) {   // a brisa: cor puxando pro verde/roxo, tela balançando, visão respirando
+  chapado = Math.max(0, chapado - dt / 30);                 // passa 1 nível a cada 30 s
+  const c = jogando ? chapado : 0;
+  $('brisa').style.opacity = Math.min(0.8, c * 0.16);
+  tela.style.filter = c > 0.02 ? 'saturate(' + (1 + c * 0.2).toFixed(2) + ') hue-rotate(' + (Math.sin(T * 0.35) * c * 10).toFixed(1) + 'deg)' : '';
+  if (c > 0.02 && !morto) {
+    camera.rotation.z += Math.sin(T * 0.7) * 0.03 * c;
+    fov += Math.sin(T * 0.9) * c * 1.4;
+  }
+  return fov;
+}
+function montarItemVM() {         // o que vai na mão em primeira pessoa no lugar da arma
+  const mBraco = M(eu ? eu.cor : CORES[0]);
+  vm.add(cx(0.09, 0.09, 0.42, mBraco, 0.03, -0.1, 0.22), cx(0.06, 0.06, 0.07, mBraco, 0, -0.02, 0));   // braço e punho
+  if (atividade === 'dardos') {
+    const d = novoDardo(eu ? eu.cor : 0xef4444);
+    d.rotation.y = Math.PI;                                // ponta pra frente
+    d.position.set(0, 0.03, -0.17);
+    d.scale.setScalar(1);
+    vm.add(d);
+    vmBrasa = null;
+    return;
+  }
+  const bas = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.007, 0.1, 6), M(0xf5f0e1));
+  bas.rotation.x = -(Math.PI / 2 - 0.3); bas.position.set(0, 0.01, -0.05);
+  vmBrasa = cx(0.017, 0.017, 0.012, new THREE.MeshBasicMaterial({ color: 0xff5a1f }), 0, 0.025, -0.098);
+  vmBrilho = new THREE.Sprite(brilho(0xff6a00, 0.7));
+  vmBrilho.position.copy(vmBrasa.position); vmBrilho.scale.setScalar(0.05);
+  vm.add(bas, vmBrasa, vmBrilho);
+}
+function poseItemVM() {
+  vmClarao.visible = false;
+  if (atividade === 'dardos') {                            // depois de jogar, o próximo dardo sobe de baixo
+    const volta = Math.min(1, (T - jogoDardo.tLanc) / 0.5), sem = jogoDardo.n >= 3;
+    vm.position.set(0.14, -0.13 - 0.3 * (sem ? 1 : (1 - volta) * (1 - volta)), -0.32);
+    vm.rotation.set(0.08, 0.05, 0);
+    return;
+  }
+  const p = Math.min(1, (T - tPuxada) / 1.3), boca = Math.sin(Math.PI * p);    // puxando: a mão leva o baseado até a boca
+  vm.position.set(0.17 - 0.15 * boca, -0.2 + 0.12 * boca, -0.36 + 0.2 * boca);
+  vm.rotation.set(0.15 + 0.2 * boca, 0.6 + 0.4 * boca, 0.2);
+  if (vmBrilho) {
+    const forte = p < 0.6 ? boca : 0;
+    vmBrilho.scale.setScalar(0.05 + 0.04 * forte + 0.006 * Math.sin(T * 9));
+    vmBrilho.material.opacity = 0.55 + 0.45 * forte;
+  }
+}
+
 // ───────── Loop ─────────
 let antes = performance.now(), envio = 0;
 const deslocCam = new V3();
@@ -2633,8 +3289,8 @@ function quadro(agora) {
   let luneta = false;
   if (eu) {
     if (!morto && !emFim && !fora) {
-      mover(dt);
-      armas(dt);
+      if (atividade) atualizarAtividade(dt);
+      else { mover(dt); armas(dt); }
       if (T - tDash > DASH_CD !== dashPronto) { dashPronto = !dashPronto; hud(); }   // atualiza o aviso de dash
       if (vida < vidaMax && T - tDano > 5) {            // vida volta sozinha depois de 5s sem levar tiro
         vida = Math.min(vidaMax, vida + 25 * dt);
@@ -2643,15 +3299,15 @@ function quadro(agora) {
     } else { mirando = false; correndo = false; agachado = false; emote = 0; }
     eu.g.position.copy(pos);
     eu.g.rotation.y = yaw;
-    eu.pitch = pitch; eu.rec = tRec > 0; eu.ag = agachado; eu.em = emote;
-    eu.st = morto ? 4 : !noChao ? 3 : T - tSlide < 0.7 ? 5 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
+    eu.pitch = pitch; eu.rec = tRec > 0; eu.ag = agachado; eu.em = atividade === 'cama' ? 4 : emote;
+    eu.st = morto ? 4 : atividade ? 0 : !noChao ? 3 : T - tSlide < 0.7 ? 5 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
     if (eu.mod && !fora) animar(eu, T);
     envio -= dt;
     if (envio <= 0) {
       envio = 0.05;
       mandar({ t: 'p', p: arr(pos, 2), r: +yaw.toFixed(2), x: +pitch.toFixed(2), m: fora ? 2 : morto ? 1 : 0, k: abates,
                c: escolha.c, a: armaIdx(), s: eu.st, rc: tRec > 0 ? 1 : 0, g: agachado ? 1 : 0,
-               em: emote, md: MODOS.indexOf(modo), on: ondaN, bv: baseVida });
+               em: eu.em, md: MODOS.indexOf(modo), on: ondaN, bv: baseVida });
       tique++;
       for (const [id, o] of outros)      // zumbis mandam posição 3x mais devagar (são muitos); os caídos, quase nunca
         if (o.bot && (!o.bot.zumbi || (tique % 3 === 0 && (!o.fora || tique % 30 === 0))))
@@ -2660,6 +3316,7 @@ function quadro(agora) {
     }
   }
   if (modo === 'ondas' && eu && !emFim && souHost()) gerirOndas(dt);
+  if (eu) atualizarCasa(dt);
   for (const [id, o] of outros) {
     if (o.bot) {
       if (!emFim) (o.bot.zumbi ? pensarZumbi : pensarBot)(id, o, dt);
@@ -2703,7 +3360,8 @@ function quadro(agora) {
     mAds += ((mirando ? 1 : 0) - mAds) * (1 - Math.exp(-14 * dt));
     camera.rotation.set(pitch, yaw, 0);
     olho += ((T - tSlide < 0.7 ? 0.95 : agachado ? 1.15 : OLHO) - olho) * (1 - Math.exp(-14 * dt));
-    if (emote && !morto) {                                           // emote: a câmera vai pra frente pra você se ver
+    if (atividade && !morto) fov = cameraAtividade(fov);          // Safe House: cama, mesa de sinuca, alvo de dardos
+    else if (emote && !morto) {                                      // emote: a câmera vai pra frente pra você se ver
       camera.position.set(pos.x - Math.sin(yaw) * 3.3, pos.y + 1.6, pos.z - Math.cos(yaw) * 3.3);
       camera.lookAt(pos.x, pos.y + 1.1, pos.z);
     } else if (!morto) {
@@ -2719,16 +3377,17 @@ function quadro(agora) {
     }
   }
   vitrine.g.visible = fora && !naTitulo;
-  if (eu && eu.mod) eu.mod.visible = morto || !!emote;       // vivo eu não vejo meu corpo, só a arma (menos em emote)
+  if (eu && eu.mod) eu.mod.visible = morto || !!emote || atividade === 'cama';       // vivo eu não vejo meu corpo, só a arma (menos em emote)
   $('luneta').style.opacity = luneta ? 1 : 0;
   $('mira').classList.toggle('ads', mAds > 0.6 && !luneta);   // mirando: some a bolinha, fica um ponto vermelho em cima da arma
   atualizarTrava();
   atualizarSkill();
+  fov = aplicarBrisa(fov, dt, !naTitulo && !fora);
   camera.fov += (fov - camera.fov) * (1 - Math.exp(-14 * dt));
   camera.updateProjectionMatrix();
   renderer.clear();
   renderer.render(cena, camera);
-  if (eu && !fora && !morto && !luneta && !emote) {         // arma por cima, com a profundidade zerada
+  if (eu && !fora && !morto && !luneta && !emote && (!atividade || atividade === 'dardos')) {         // arma por cima, com a profundidade zerada
     poseVM(dt);
     renderer.clearDepth();
     renderer.render(cenaVM, camVM);
