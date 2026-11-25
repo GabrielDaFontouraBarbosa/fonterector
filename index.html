@@ -49,6 +49,60 @@
   #sono{position:absolute;inset:0;background:#02030a;opacity:0;transition:opacity 2.5s;display:flex;align-items:center;justify-content:center}
   #sono b{font:800 44px system-ui,sans-serif;letter-spacing:.5em;color:#c7d2fe;animation:piscar 1.4s ease-in-out infinite alternate}
   #brisa{position:absolute;inset:0;opacity:0;background:radial-gradient(transparent 35%,#22c55e55 75%,#14532dcc)}
+  /* ── cutscene: faixas pretas de cinema, o resto do HUD some ── */
+  #cinema i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .8s}
+  #cinema i:first-child{top:0} #cinema i:last-child{bottom:0}
+  body.cinema #cinema i{height:11vh}
+  body.cinema #hud>*:not(#cinema):not(#aviso){visibility:hidden}
+  /* ── Fonterector Code: o mini VS Code do PC ── */
+  #pc{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:#0008;backdrop-filter:blur(2px)}
+  #pc[hidden]{display:none}
+  #pc .janela{width:min(1100px,96vw);height:min(700px,92vh);display:flex;flex-direction:column;background:#1e1e1e;color:#ccc;
+    border:1px solid #444;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px #000c;font:13px/1.4 system-ui,sans-serif;user-select:text}
+  #pc button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  #pc .barra{display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;background:#323233;font-size:12px}
+  #pc .bolas{display:flex;gap:6px} #pc .bolas i{width:11px;height:11px;border-radius:50%;background:#ff5f57}
+  #pc .bolas i:nth-child(2){background:#febc2e} #pc .bolas i:nth-child(3){background:#28c840}
+  #pcTitulo{flex:1;text-align:center;opacity:.8} #pcFechar:hover{color:#fff;background:#c42b1c}
+  #pc .corpo{flex:1;display:flex;min-height:0}
+  #pc nav{width:46px;background:#333;display:flex;flex-direction:column}
+  #pc nav button{height:46px;display:flex;align-items:center;justify-content:center;border-left:2px solid transparent;opacity:.55}
+  #pc nav button.sel{opacity:1;border-left-color:#fff}
+  #pc nav svg{width:24px;height:24px;fill:none;stroke:#ccc;stroke-width:1.6}
+  #pcLado{width:220px;background:#252526;padding:8px 0;overflow:auto}
+  #pcLado h5{margin:4px 14px 10px;font-size:11px;letter-spacing:.08em;color:#bbb}
+  #pcLado p{margin:6px 14px;color:#aaa} #pcLado .link{margin:10px 14px;color:#3794ff;font-size:12px}
+  #pcArquivos button,#pcAbas button{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  #pcArquivos button{width:100%;padding:3px 14px;text-align:left} #pcArquivos button:hover{background:#2a2d2e}
+  #pcArquivos button.sel{background:#37373d;color:#fff}
+  #pc i[class^=ic-]{width:14px;height:14px;border-radius:3px;font:700 9px/14px system-ui;text-align:center;color:#000;font-style:normal}
+  #pc .ic-python{background:#3572a5} #pc .ic-python::after{content:"py";color:#ffd43b}
+  #pc .ic-lua{background:#000080} #pc .ic-lua::after{content:"lua";color:#fff;font-size:7px}
+  #pc .ic-java{background:#b07219} #pc .ic-java::after{content:"J";color:#fff}
+  #pcSenha{display:block;margin:10px 14px;width:calc(100% - 28px);box-sizing:border-box;padding:6px 8px;background:#3c3c3c;color:#fff;
+    border:1px solid #555;border-radius:3px;font:600 16px monospace;letter-spacing:.3em}
+  #pc .azul{background:#0e639c;color:#fff;padding:5px 12px;border-radius:2px} #pc .azul:hover{background:#1177bb}
+  #pcAbrir{margin:0 14px} #pcSegMsg{color:#f0c674 !important;min-height:20px}
+  #pc main{flex:1;display:flex;flex-direction:column;min-width:0}
+  #pcAbas{display:flex;background:#252526;height:35px}
+  #pcAbas button{padding:0 14px;background:#2d2d2d;border-right:1px solid #252526;opacity:.7}
+  #pcAbas button.sel{background:#1e1e1e;opacity:1;border-top:1px solid #3794ff}
+  #pc .editor{flex:1;display:flex;min-height:0;font:14px/20px "Cascadia Code","Fira Code",Consolas,"DejaVu Sans Mono",monospace}
+  #pcLinhas{margin:0;padding:8px 12px 8px 8px;min-width:32px;text-align:right;color:#6e7681;overflow:hidden;font:inherit}
+  #pc .area{position:relative;flex:1;min-width:0}
+  #pcCor,#pcCodigo{position:absolute;inset:0;margin:0;padding:8px;border:0;font:inherit;white-space:pre;tab-size:4;overflow:auto;box-sizing:border-box}
+  #pcCor{color:#d4d4d4;pointer-events:none;overflow:hidden}
+  #pcCodigo{background:transparent;color:transparent;caret-color:#aeafad;resize:none;outline:none}
+  #pcCodigo::selection{background:#264f78;color:transparent}
+  .tk{color:#c586c0}.ts{color:#ce9178}.tn{color:#b5cea8}.tc{color:#6a9955;font-style:italic}.tf{color:#dcdcaa}
+  #pc .terminal{height:34%;display:flex;flex-direction:column;border-top:1px solid #444;background:#181818}
+  #pc .tbarra{display:flex;align-items:center;gap:10px;padding:4px 12px;font-size:11px;letter-spacing:.06em}
+  #pc .tbarra span{flex:1;border-bottom:1px solid #e7e7e7;padding-bottom:2px;max-width:70px}
+  #pc .tbarra small{opacity:.7;margin-left:4px}
+  #pcSaida{flex:1;margin:0;padding:4px 12px;overflow:auto;font:13px/18px "Cascadia Code",Consolas,monospace;color:#ccc;white-space:pre-wrap}
+  #pcSaida .cmd{color:#3794ff}#pcSaida .erro{color:#f48771}#pcSaida .ok{color:#89d185}#pcSaida .dim{color:#6e7681}
+  #pc .status{display:flex;gap:16px;height:22px;align-items:center;padding:0 10px;background:#007acc;color:#fff;font-size:12px}
+  #pc .status span:last-child{margin-left:auto}
 
   .botao{padding:14px 34px;font:800 clamp(15px,2vw,22px) system-ui,sans-serif;letter-spacing:.2em;color:#fff;
     background:#b91c1c;border:2px solid #fecaca;border-radius:4px;cursor:pointer;box-shadow:0 0 30px #ef4444aa}
@@ -212,6 +266,37 @@
   <div id="skill"><b></b><i></i></div>
   <div id="interagir"></div>
   <div id="jogoInfo"></div>
+  <div id="cinema"><i></i><i></i></div>
+</div>
+<div id="pc" hidden>
+  <div class="janela">
+    <div class="barra"><span class="bolas"><i></i><i></i><i></i></span><span id="pcTitulo"></span><button id="pcFechar" title="Fechar (Esc)">✕</button></div>
+    <div class="corpo">
+      <nav>
+        <button data-p="arquivos" title="Arquivos"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6"/></svg></button>
+        <button data-p="segredos" title="Segredos"><svg viewBox="0 0 24 24"><path d="M6 11h12v10H6z M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
+      </nav>
+      <aside id="pcLado">
+        <section data-painel="arquivos"><h5>EXPLORADOR · MEMES</h5><div id="pcArquivos"></div><button id="pcReset" class="link">↺ voltar o arquivo ao original</button></section>
+        <section data-painel="segredos" hidden><h5>SEGREDOS</h5>
+          <p>Tem um segredo escondido nessa casa. Só quem sabe o código abre.</p>
+          <input id="pcSenha" maxlength="8" placeholder="código" autocomplete="off" inputmode="numeric">
+          <button id="pcAbrir" class="azul">Desbloquear</button>
+          <p id="pcSegMsg"></p>
+        </section>
+      </aside>
+      <main>
+        <div id="pcAbas"></div>
+        <div class="editor"><pre id="pcLinhas"></pre><div class="area"><pre id="pcCor" aria-hidden="true"></pre><textarea id="pcCodigo" spellcheck="false" autocomplete="off" wrap="off"></textarea></div></div>
+        <div class="terminal">
+          <div class="tbarra"><span>TERMINAL</span><button id="pcRodar" class="azul">▶ Executar <small>Ctrl+Enter</small></button><button id="pcLimpar">Limpar</button></div>
+          <pre id="pcSaida"><span class="dim">Fonterector Code · Python (Skulpt), Lua (Fengari) e Java (do jeito que deu)
+</span></pre>
+        </div>
+      </main>
+    </div>
+    <div class="status"><span>⎇ main</span><span id="pcLing"></span><span>UTF-8</span><span>Esc fecha</span><span>Fonterector ✓</span></div>
+  </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- carregadores de modelo (mesma versão do three): .glb do cenário e .obj/.mtl das armas -->
@@ -267,8 +352,10 @@ function aoAcertar(arma, distancia, naCabeca) {
 
 // ───────── Cena ─────────
 const $ = id => document.getElementById(id);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+const PR_MAX = Math.min(devicePixelRatio, 1.25);
+let pr = PR_MAX;                           // resolução se ajusta sozinha ao FPS (ver resolucaoAdaptativa)
+renderer.setPixelRatio(pr);
 document.body.prepend(renderer.domElement);
 const tela = renderer.domElement;
 const cena = new THREE.Scene();
@@ -291,6 +378,30 @@ sol.position.set(10, 20, 6);
 const fogo = new THREE.PointLight(0xff4a1c, 0, 40);     // só acende na tela de título
 cena.add(luzCeu, sol, fogo);
 
+// Céu: uma esfera grande com degradê (topo → horizonte → chão) que anda junto com a câmera.
+// Um shader só, sem textura: custa quase nada e tira a cara de "fundo chapado".
+const CLIMAS = {          // céu em cima, horizonte (= cor da névoa), luz do céu, luz do chão, cor e força do sol
+  industrial: { topo: 0x4f7db3, hor: 0xb9c7d6, ceu: 0xe8f0ff, chao: 0x556677, sol: 0xfff3dd, forca: 0.75, near: 35, far: 110 },
+  casa:       { topo: 0x3f74c9, hor: 0xffc79a, ceu: 0xffe7c7, chao: 0x9a8a72, sol: 0xffd29a, forca: 0.85, near: 40, far: 120 },   // fim de tarde
+};
+const ceu = new THREE.Mesh(new THREE.SphereGeometry(150, 24, 12), new THREE.ShaderMaterial({
+  uniforms: { topo: { value: new THREE.Color() }, hor: { value: new THREE.Color() }, base: { value: new THREE.Color(0x6b7a5a) } },
+  vertexShader: 'varying float h; void main(){ h = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform vec3 topo, hor, base; varying float h; void main(){ vec3 c = h > 0.0 ? mix(hor, topo, pow(h, 0.55)) : mix(hor, base, min(1.0, -h * 4.0)); gl_FragColor = vec4(c, 1.0); }',
+  side: THREE.BackSide, depthWrite: false, fog: false,
+}));
+ceu.renderOrder = -1;
+cena.add(ceu);
+let noite = true;                          // tela de título: tudo preto
+function aplicarClima() {
+  const c = CLIMAS[mapaAtual] || CLIMAS.industrial;
+  ceu.visible = !noite;
+  if (noite) return;
+  ceu.material.uniforms.topo.value.setHex(c.topo); ceu.material.uniforms.hor.value.setHex(c.hor);
+  cena.background.setHex(c.hor); cena.fog.color.setHex(c.hor); cena.fog.near = c.near; cena.fog.far = c.far;
+  luzCeu.color.setHex(c.ceu); luzCeu.groundColor.setHex(c.chao); luzCeu.intensity = 0.9;
+  sol.color.setHex(c.sol); sol.intensity = c.forca;
+}
 function ajustarTela() {
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = camVM.aspect = innerWidth / innerHeight;
@@ -300,14 +411,17 @@ function ajustarTela() {
 addEventListener('resize', ajustarTela);
 ajustarTela();
 
-const M = cor => new THREE.MeshLambertMaterial({ color: cor, flatShading: true });
+// Um material por cor, compartilhado: menos troca de estado na GPU e menos memória.
+// Quem precisa mudar a cor do próprio material usa new THREE.MeshLambertMaterial (como o chão).
+const materiais = new Map();
+const M = cor => materiais.get(cor) || materiais.set(cor, new THREE.MeshLambertMaterial({ color: cor, flatShading: true })).get(cor);
 const cx = (w, h, d, mat, x, y, z) => {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, y, z);
   return m;
 };
 
-const chao = new THREE.Mesh(new THREE.PlaneGeometry(ARENA * 2, ARENA * 2), M(0x66785a));
+const chao = new THREE.Mesh(new THREE.PlaneGeometry(ARENA * 2, ARENA * 2), new THREE.MeshLambertMaterial({ color: 0x66785a, flatShading: true }));
 chao.rotation.x = -Math.PI / 2;
 cena.add(chao);
 const grade = new THREE.GridHelper(ARENA * 2, 22, 0x4d5c44, 0x4d5c44);
@@ -342,6 +456,9 @@ function montarMapa(nome) {
   grade.visible = !casa;
   vitrinePos.set(0, casa ? 0 : 2.2, casa ? 13 : 0);
   (casa ? mapaCasa : mapaIndustrial)();
+  // o que não se mexe para de recalcular a matriz todo quadro (centenas de peças a menos por quadro)
+  for (const o of grupoMapa.children) if (!o.userData.mexe) { o.updateMatrixWorld(true); o.traverse(n => n.matrixAutoUpdate = false); }
+  aplicarClima();
 }
 const W = ARENA + 1;
 
@@ -397,8 +514,11 @@ const SH = {
   dardos:  { x: 2.2,  z: -24.5, raio: 1.4, txt: 'Jogar dardos' },
   dado:    { x: -3.5, z: -18,   raio: 1.9, txt: 'Rolar os dados' },
   baseado: { x: -8.5, z: -24.8, raio: 2,   txt: 'Fumar um' },
+  pc:      { x: 10.3, z: -18.0, raio: 1.5, txt: 'Usar o computador' },
+  gato:    { x: 0,    z: 0,     raio: 0,   txt: 'Fazer carinho no gato' },   // o gato anda: a distância é vista à parte
 };
 function mapaCasa() {
+  casaViva = { copas: [], fonte: null, ovo: null };
   const MURO = 0xb4553b, BRANCO = 0xf3ead8, TELHA = 0x9c3d2e, MAD = 0x8a5a2b, PEDRA = 0xb8b2a6;
   const plano = (w, d, cor, x, y, z) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), M(cor));
@@ -430,15 +550,14 @@ function mapaCasa() {
   caixa(SH.baseado.x, SH.baseado.z, 2.2, 1.1, 0.45, MAD);
   plano(5, 3.2, 0xa83232, -8.5, 0.03, cz - 3);
   caixa(-8.5, cz + 1.6, 2.8, 0.5, 0.6, MAD);
-  caixa(-8.5, cz + 1.6, 2.6, 0.12, 1.4, 0x111111, 0.6);
-  enfeite(cx(2.4, 1.2, 0.05, new THREE.MeshBasicMaterial({ color: 0x5eb8ff }), -8.5, 1.3, cz + 1.51));
+  caixa(-8.5, cz + 1.6, 2.6, 0.12, 1.4, 0x111111, 0.6);                        // a tela (passando o jornal) vem em montarVidaCasa
   // quarto: cama de casal, travesseiro, coberta, criado-mudo com abajur e estante
   caixa(9.5, -26.15, 2.2, 2.3, 0.55, 0xe5e5e5); caixa(9.5, -27.45, 2.2, 0.3, 1.1, MAD);
   enfeite(cx(1.3, 0.14, 0.5, M(0xffffff), 9.5, 0.62, -26.9));
   enfeite(cx(2.26, 0.06, 1.5, M(0x6d28d9), 9.5, 0.58, -25.7));
   caixa(11.3, -27.3, 0.8, 0.8, 0.6, MAD);
   enfeite(cx(0.3, 0.35, 0.3, new THREE.MeshBasicMaterial({ color: 0xfff1c1 }), 11.3, 0.8, -27.3));
-  caixa(11.5, -18.5, 0.6, 2.4, 2.2, MAD);
+  caixa(11.5, -21.2, 0.6, 2.4, 2.2, MAD);                                       // estante (os livros vêm em montarVidaCasa)
   const luz = new THREE.PointLight(0xffd9a0, 0.9, 22);
   luz.position.set(-6, 3, cz);
   enfeite(luz);
@@ -448,32 +567,33 @@ function mapaCasa() {
   enfeite(new THREE.Mesh(new THREE.CircleGeometry(10, 28), M(0x9e978a))).rotation.x = -Math.PI / 2;
   grupoMapa.children[grupoMapa.children.length - 1].position.y = 0.015;
   plano(3, 7, PEDRA, 0, 0.016, -12.5);                                           // caminho até a porta
-  caixa(0, 0, 4.4, 4.4, 0.7, PEDRA);                                             // fonte: borda
-  plano(3.8, 3.8, 0x4fc3f7, 0, 0.72, 0);                                         // água
-  caixa(0, 0, 0.7, 0.7, 2.2, PEDRA);                                             // coluna
-  const bacia = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.6, 0.4, 10), M(PEDRA));
-  bacia.position.set(0, 2.35, 0);
-  enfeite(bacia);
+  if (ovoAberto) montarOvo(true); else montarFonte();                          // o segredo 5656 troca a fonte pelo ovo
   for (const [x, z, w, d] of [[7, 0, 0.7, 2.6], [-7, 0, 0.7, 2.6], [0, 7, 2.6, 0.7], [0, -7.5, 2.6, 0.7]]) {
     caixa(x, z, w, d, 0.5, MAD);                                                 // bancos
   }
   for (const [x, z] of [[-12, -5], [12, -5], [-12, 8], [12, 8], [-25, 15], [25, 15], [-26, -9], [26, -9], [-8, 23], [8, 23], [0, 29], [-29, 29], [29, 29]]) {
     caixa(x, z, 0.5, 0.5, 2.6, 0x6b4423);                                        // árvores
-    const copa = new THREE.Mesh(new THREE.IcosahedronGeometry(1.7, 0), M(0x3f8f3a));
-    copa.position.set(x, 3.6, z);
+    const copa = new THREE.Group();                                             // a copa balança com o vento (ver atualizarVida)
+    const c1 = new THREE.Mesh(geoCopa1, M(0x3f8f3a)), c2 = new THREE.Mesh(geoCopa2, M(0x4caf50)), c3 = new THREE.Mesh(geoCopa2, M(0x2f7a32));
+    c1.position.y = 1; c2.position.set(0.4, 2.1, -0.2); c3.position.set(-0.6, 1.5, 0.5); c3.scale.setScalar(0.8);
+    copa.add(c1, c2, c3);
+    copa.position.set(x, 2.6, z); copa.rotation.y = x * 0.7 + z;
+    copa.userData.mexe = true;
     enfeite(copa);
-    const copa2 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 0), M(0x4caf50));
-    copa2.position.set(x + 0.4, 4.7, z - 0.2);
-    enfeite(copa2);
+    casaViva.copas.push(copa);
   }
   for (const [x, z] of [[-9.5, -9.5], [9.5, -9.5], [-9.5, 9.5], [9.5, 9.5]]) {
     caixa(x, z, 0.2, 0.2, 4, 0x333333);                                          // postes
-    enfeite(cx(0.5, 0.25, 0.5, new THREE.MeshBasicMaterial({ color: 0xffe7a3 }), x, 4.1, z));
+    enfeite(cx(0.5, 0.25, 0.5, M_LUZ_POSTE, x, 4.1, z));
+    const halo = new THREE.Sprite(brilho(0xffd59a, 0.35));                      // halo da lâmpada
+    halo.position.set(x, 4.1, z); halo.scale.setScalar(2.2);
+    enfeite(halo);
   }
   for (const [x, z, cor] of [[-4, -15, 0xf472b6], [4, -15, 0xfacc15], [-14, 16, 0xf472b6], [14, 16, 0xa78bfa]]) {
     caixa(x, z, 2.2, 1, 0.35, 0x6b4423);                                         // canteiros
     for (let i = 0; i < 5; i++) enfeite(cx(0.2, 0.2, 0.2, M(cor), x - 0.8 + i * 0.4, 0.5, z + (i % 2 ? 0.2 : -0.2)));
   }
+  montarVidaCasa();
 }
 montarMapa('industrial');
 
@@ -736,10 +856,24 @@ function pecasArma(g, ai) {       // mesma arma serve pro boneco e pra visão em
   if (ai === 3) g.add(cx(0.07, 0.07, 0.35, M(0x555555), 0, 0.12, -0.2));         // luneta
   if (ai === 5) g.add(cx(0.13, 0.13, 0.12, M(0x555555), 0, 0, -0.05));           // tambor
 }
+// Sombra de mancha: um disco escuro e macio no pé de cada boneco. Uma geometria e um material
+// pra todos; bem mais barato que sombra de verdade e já "assenta" o boneco no chão.
+const texSombra = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+})();
+const geoSombra = new THREE.PlaneGeometry(1.1, 1.1).rotateX(-Math.PI / 2);
+const matSombra = new THREE.MeshBasicMaterial({ map: texSombra, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
 function novaEntidade(cor) {
-  const g = new THREE.Group();
+  const g = new THREE.Group(), sombra = new THREE.Mesh(geoSombra, matSombra);
+  sombra.position.y = 0.02; sombra.renderOrder = 1;
+  g.add(sombra);
   cena.add(g);
-  return { g, cor, c: -1, a: -1, mod: null, st: 0, pitch: 0, rec: false, tTiro: -9, tMorte: 0, fase: Math.random() * 10 };
+  return { g, sombra, cor, c: -1, a: -1, mod: null, st: 0, pitch: 0, rec: false, tTiro: -9, tMorte: 0, fase: Math.random() * 10 };
 }
 function vestir(e, c, a) {
   if (e.c !== c) {
@@ -956,6 +1090,7 @@ function criarModelo(ci, cor) {
 function animar(e, t) {
   const u = e.mod.userData;
   if (u.armaG) u.armaG.visible = e.em !== 4;      // dormindo, a arma fica guardada
+  if (e.sombra) e.sombra.visible = e.em !== 4 && e.st !== 4;
   if (!u.esq) { animarCaixas(e, t); return; }
   const A = ARMAS[e.a] || ARMAS[0], vivo = e.st !== 4, anda = e.st === 1 || e.st === 2, zumbi = e.a === 7;
   const dt = Math.min(0.1, Math.max(0, t - (u.tAnt === undefined ? t : u.tAnt)));
@@ -1063,9 +1198,12 @@ function poseVM(dt) {
   const saque = Math.max(0, 1 - (T - tSaque) / 0.35);  // sacar: sobe de baixo, girando de lado
   y -= 0.25 * saque * saque; rz += 0.9 * saque * saque;
   vmCoice *= Math.exp(-18 * dt);
-  vm.position.lerp(vmAlvo.set(x, y, z + 0.07 * vmCoice), k);
+  const bal = 1 - mAds * 0.85;                          // mirando, quase não balança
+  balancoX *= Math.exp(-7 * dt); balancoY *= Math.exp(-7 * dt);
+  const resp = noChao ? 0 : Math.max(-0.05, Math.min(0.04, -vel.y * 0.006));   // no ar a arma flutua com a queda
+  vm.position.lerp(vmAlvo.set(x + balancoX * bal, y + (balancoY + resp) * bal, z + 0.07 * vmCoice), k);
   vm.rotation.x += (rx + 0.09 * vmCoice * (1 - 0.6 * mAds) - vm.rotation.x) * k;
-  vm.rotation.y += (ry - vm.rotation.y) * k;
+  vm.rotation.y += (ry - balancoX * 2 * bal - vm.rotation.y) * k;
   vm.rotation.z = tRec > 0 && A.energia ? rz : vm.rotation.z + (rz - vm.rotation.z) * k;
   vmClarao.visible = T - eu.tTiro < 0.05;                             // clarão do tiro por 1 quadro
   vmClarao.material.color.setHex(A.energia ? A.cor : 0xffe08a);
@@ -1356,12 +1494,13 @@ function aparecer(i) {                    // um operador sai do escuro: pancada 
 
 const DIA = 0x9fb3c8, NOITE = 0x000000;
 function modoNoite(on) {
+  noite = on;
   cena.background.set(on ? NOITE : DIA);
   cena.fog.color.set(on ? NOITE : DIA);
   cena.fog.near = on ? 6 : 35; cena.fog.far = on ? 55 : 110;
   chamas.visible = on;
   if (!on) herois.forEach(h => h.g.visible = false);
-  if (!on) { luzCeu.intensity = 0.9; sol.intensity = 0.7; fogo.intensity = 0; }
+  if (!on) { fogo.intensity = 0; aplicarClima(); } else ceu.visible = false;
 }
 modoNoite(true);
 
@@ -1630,6 +1769,7 @@ function tratar(m) {
     vestir(o, PERSONAGENS[m.c] ? m.c : 1, ARMAS[m.a] ? m.a : 0);   // tolera página antiga/pacote torto
     if (!o.visto) { o.g.position.fromArray(m.p); o.visto = true; }
     o.alvo.fromArray(m.p); o.yaw = m.r; o.pitch = m.x || 0; o.rec = !!m.rc; o.ag = !!m.g; o.em = m.em | 0;
+    if (m.ov && !ovoAberto) iniciarOvo(false);                   // cheguei depois do segredo: o ovo já está lá
     if (m.id > 0 && m.id < meuId && m.md !== undefined) {       // quem tem id menor manda: modo, onda e vida do Fonterector
       const v = MODOS[m.md] || 'arcade';
       if (v !== modo) { modo = v; aplicarModo(); }
@@ -1663,6 +1803,9 @@ function tratar(m) {
   } else if (m.t === 'skill') {
     const cor = [0x60a5fa, 0x4ade80][m.c];
     if (cor) aura(o, cor, 4);
+  } else if (m.t === 'ovo') {
+    iniciarOvo(true);
+    feed(nome(m.id) + ' descobriu o segredo');
   } else if (m.t === 'sinuca') {
     receberSinuca(m.b);
   } else if (m.t === 'dardo' && mapaAtual === 'casa' && Array.isArray(m.o) && Array.isArray(m.p)) {
@@ -1716,7 +1859,7 @@ function vitoria(txt) {
 
 // ───────── Controles ─────────
 addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;     // digitando o código da sala
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;     // digitando (código da sala, PC)
   if (!e.repeat && e.code === 'KeyT') emotar(1);
   if (!e.repeat && e.code === 'KeyG') emotar(2);
   if (!e.repeat && e.code === 'KeyH') emotar(3);
@@ -1752,14 +1895,17 @@ addEventListener('wheel', () => { if (!baseado && !atividade) trocar(1 - slot); 
 document.addEventListener('pointerlockchange', () => {
   const travado = document.pointerLockElement === tela;
   if (!travado) { atirando = false; botaoDir = false; }
-  if (!fora) { if (travado) $('menu').hidden = true; else abrirMenu(); }     // soltou o mouse (Esc) = menu de pausa
+  if (!fora) { if (travado) $('menu').hidden = true; else if (atividade !== 'pc') abrirMenu(); }     // soltou o mouse (Esc) = menu de pausa
 });
 addEventListener('mousemove', e => {
   if (document.pointerLockElement !== tela) return;
   const s = 0.0022 * camera.fov / 75;       // mirando = mouse mais lento
   yaw -= e.movementX * s;
   pitch = Math.max(-1.3, Math.min(1.3, pitch - e.movementY * s));
+  balancoX = Math.max(-0.035, Math.min(0.035, balancoX - e.movementX * 0.00012));   // a arma fica um tico pra trás do giro
+  balancoY = Math.max(-0.03, Math.min(0.03, balancoY + e.movementY * 0.0001));
 });
+let balancoX = 0, balancoY = 0, tPasso = 0;
 
 // ───────── Física ─────────
 function bate(p) {
@@ -1851,6 +1997,11 @@ function mover(dt) {
   if (andar(pos, vel, dt).chao) {
     if (T - tChao > 0.25 && vy < -7) baque = Math.min(0.3, -vy * 0.02);     // pousou de uma queda: a câmera afunda
     tChao = T;
+  }
+  const vh = Math.hypot(vel.x, vel.z);
+  if (noChao && vh > 1.5 && T > tPasso) {                // passos: ruído grave curto, mais rápido correndo
+    tPasso = T + (correndo ? 0.27 : agachado ? 0.55 : 0.38);
+    ruido(0.06, mapaAtual === 'casa' && pos.z < -15.8 && pos.z > -28 && Math.abs(pos.x) < 12 ? 1400 : 650, correndo ? 0.05 : 0.03);   // madeira dentro de casa soa mais seco
   }
   noChao = T - tChao < 0.1;                             // 0,1 s de tolerância: descer escada ou sair da beirada ainda conta como chão
 }
@@ -2313,6 +2464,8 @@ function definirModo(v) {         // só o host: limpa bots e zumbis e avisa a s
 }
 function aplicarModo() {
   monumento.visible = modo === 'ondas';
+  if (atividade === 'pc') $('pc').hidden = true;
+  cutscene = null; document.body.classList.remove('cinema');
   atividade = null; baseado = 0; $('sono').style.opacity = 0;      // a casa vai sumir: larga a sinuca, a cama, o baseado
   montarMapa(modo === 'safe' ? 'casa' : 'industrial');
   if (!fora && !morto) nascer();                 // mapa novo: renasce num lugar que existe nele
@@ -2735,6 +2888,8 @@ function pontoPerto() {
     const p = SH[k], d = Math.hypot(pos.x - p.x, pos.z - p.z);
     if (d < p.raio && d < dm) { dm = d; melhor = k; }
   }
+  const g = casaViva.gato;
+  if (g && Math.hypot(pos.x - g.position.x, pos.z - g.position.z) < Math.min(1.8, dm)) melhor = 'gato';
   return melhor;
 }
 function interagir() {
@@ -2744,6 +2899,7 @@ function interagir() {
   if (!k) { if (baseado) { apagarBaseado(); return true; } return false; }
   if (k === 'baseado') { if (baseado) apagarBaseado(); else acender(); return true; }
   if (k === 'dado') { jogarDados(); return true; }
+  if (k === 'gato') { carinho(); return true; }
   entrarAtividade(k);
   return true;
 }
@@ -2758,6 +2914,8 @@ function entrarAtividade(k) {
   } else if (k === 'dardos') {
     pos.set(SH.dardos.x, 0, SH.dardos.z); yaw = -Math.PI / 2; pitch = 0.05;   // de frente pro alvo
     limparRodada();
+  } else if (k === 'pc') {
+    abrirPC();
   } else if (k === 'sinuca') {
     const br = sinuca.bolas[0];
     yaw = Math.atan2(-(MESA.x + br.x - pos.x), -(MESA.z + br.z - pos.z)); pitch = -0.6;   // olhando pra branca, de onde estava
@@ -2775,6 +2933,7 @@ function sairAtividade() {
   if (a === 'sinuca') { sinuca.forca = 0; pitch = 0; }
   $('sono').style.opacity = 0;
   querPular = false; querDash = false; querDeslizar = false; atirando = false;
+  if (a === 'pc') { $('pc').hidden = true; pitch = 0; if (pc.trab) { pc.trab.terminate(); pc.trab = null; } travarMouse(); }
   montarVM();
 }
 function atualizarAtividade(dt) {                  // roda no lugar de mover() e armas()
@@ -2806,6 +2965,10 @@ function cameraAtividade(fov) {
     camera.lookAt(SH.cama.x, 0.6, SH.cama.z - 1.1);
     return 60;
   }
+  if (atividade === 'pc') {
+    camera.rotation.set(pitch, yaw, 0); camera.position.set(pos.x, OLHO, pos.z);
+    return 60;
+  }
   if (atividade === 'dardos') {                     // mão balança: a mira passeia (e passeia muito mais chapado)
     const b = 1 + chapado * 0.9;
     camera.rotation.set(pitch + (Math.sin(T * 1.7) * 0.006 + Math.sin(T * 3.1) * 0.003) * b, yaw + (Math.sin(T * 1.3) * 0.008 + Math.sin(T * 2.3) * 0.004) * b, 0);
@@ -2821,6 +2984,8 @@ function cameraAtividade(fov) {
 
 // Roda todo quadro: animações da casa, ajuda na tela, fumaça do baseado na mão
 function atualizarCasa(dt) {
+  if (mapaAtual === 'casa') atualizarVida(dt); else silenciarVida();
+  if (cutscene) passoCutscene(dt);
   if (mapaAtual === 'casa') {
     if (sinuca) atualizarSinuca(dt);
     animarDados(dt);
@@ -2859,7 +3024,7 @@ function atualizarCasa(dt) {
       '<div class="forca"><i style="width:' + Math.round(sinuca.forca * 100) + '%"></i></div>';
   } else if (baseado) info = 'BASEADO  ·  clique puxa (' + baseado + (baseado > 1 ? ' puxadas' : ' puxada') + ')  ·  E apaga';
   if (info !== ultInfo) { ultInfo = info; $('jogoInfo').innerHTML = info; }
-  $('mira').style.display = atividade === 'cama' || atividade === 'sinuca' ? 'none' : '';
+  $('mira').style.display = atividade === 'cama' || atividade === 'sinuca' || atividade === 'pc' ? 'none' : '';
   $('municao').style.visibility = atividade || baseado ? 'hidden' : '';
 }
 
@@ -3278,18 +3443,744 @@ function poseItemVM() {
   }
 }
 
+// ───────── Safe House com vida: grama, nuvens, pássaros, borboletas, gato, chafariz, TV ─────────
+// Tudo aqui é só visual e roda em cada PC. O que se mexe tem userData.mexe (não é congelado).
+// O que é muito repetido (grama, flores) é InstancedMesh: centenas de peças num desenho só.
+let casaViva = { copas: [], fonte: null, ovo: null }, ovoAberto = false, cutscene = null;
+const geoCopa1 = new THREE.IcosahedronGeometry(1.7, 0), geoCopa2 = new THREE.IcosahedronGeometry(1.1, 0);
+const M_LUZ_POSTE = new THREE.MeshBasicMaterial({ color: 0xffe7a3 });
+const tmpV = new V3(), tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpS = new V3();
+
+function texCanvas(w, h, desenho) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  desenho(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.userData = { c };
+  return t;
+}
+function quadro2D(w, h, tex, x, y, z, giro) {    // um plano com textura (pôster, tela), virado pra giro (rad)
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex }));
+  m.position.set(x, y, z); m.rotation.y = giro || 0;
+  return enfeite(m);
+}
+function poster(linhas, fundo, cor, borda) {
+  return texCanvas(256, 340, (g, w, h) => {
+    g.fillStyle = borda || '#222'; g.fillRect(0, 0, w, h);
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, fundo[0]); gr.addColorStop(1, fundo[1]);
+    g.fillStyle = gr; g.fillRect(10, 10, w - 20, h - 20);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    linhas.forEach(([txt, tam, y, c]) => { g.font = '900 ' + tam + 'px system-ui,sans-serif'; g.fillStyle = c || cor; g.fillText(txt, w / 2, y); });
+  });
+}
+
+function montarFonte() {          // fonte da praça; guarda as peças pra poder afundar na cratera
+  const PEDRA = 0xb8b2a6, i0 = caixas.length, o0 = grupoMapa.children.length;
+  caixa(0, 0, 4.4, 4.4, 0.7, PEDRA);
+  const agua = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 3.8), new THREE.MeshLambertMaterial({ color: 0x4fc3f7, transparent: true, opacity: 0.85 }));
+  agua.rotation.x = -Math.PI / 2; agua.position.set(0, 0.72, 0);
+  enfeite(agua);
+  caixa(0, 0, 0.7, 0.7, 2.2, PEDRA);
+  const bacia = enfeite(new THREE.Mesh(new THREE.CylinderGeometry(1, 0.6, 0.4, 12), M(PEDRA)));
+  bacia.position.set(0, 2.35, 0);
+  const agua2 = enfeite(new THREE.Mesh(new THREE.CircleGeometry(0.9, 14), agua.material));
+  agua2.rotation.x = -Math.PI / 2; agua2.position.set(0, 2.56, 0);
+  // jatos: 90 gotas num Points só, recicladas quando caem na água
+  const N = 90, ps = new Float32Array(N * 3), gotas = [];
+  for (let i = 0; i < N; i++) gotas.push({ x: 0, y: -9, z: 0, vx: 0, vy: 0, vz: 0, t: -i * 0.02 });
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(ps, 3));
+  const jato = enfeite(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xd6f3ff, size: 0.11, transparent: true, opacity: 0.85, depthWrite: false })));
+  jato.frustumCulled = false;
+  const objs = grupoMapa.children.slice(o0);
+  objs.forEach(o => { o.userData.mexe = true; o.userData.y0 = o.position.y; });
+  casaViva.fonte = { objs, caixas: caixas.slice(i0), agua, gotas, ps, geo };
+}
+function removerColisaoFonte() {
+  const F = casaViva.fonte;
+  if (!F) return;
+  for (const c of F.caixas) { const i = caixas.indexOf(c); if (i >= 0) caixas.splice(i, 1); }
+  for (const o of F.objs) { const i = solidos.indexOf(o); if (i > 0) solidos.splice(i, 1); }
+}
+
+function montarVidaCasa() {
+  const rnd = sorteio(5656), V = casaViva;
+  // grama: 900 folhinhas fora da praça, da casa e do caminho
+  const fora = (x, z) => Math.hypot(x, z) > 10.6 && !(x > -12.8 && x < 12.8 && z > -28.8 && z < -15.3) && !(Math.abs(x) < 2 && z > -16 && z < -8.8);
+  const geoFolha = new THREE.ConeGeometry(0.06, 0.38, 3).translate(0, 0.19, 0);
+  const grama = new THREE.InstancedMesh(geoFolha, new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 900);
+  const geoFlor = new THREE.IcosahedronGeometry(0.09, 0).translate(0, 0.32, 0);
+  const flores = new THREE.InstancedMesh(geoFlor, new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 160);
+  const cor = new THREE.Color(), CF = [0xf472b6, 0xfacc15, 0xffffff, 0xa78bfa, 0xfb923c, 0x60a5fa];
+  let ng = 0, nf = 0;
+  while (ng < 900 || nf < 160) {
+    const x = (rnd() - 0.5) * 66, z = (rnd() - 0.5) * 66;
+    if (!fora(x, z)) continue;
+    const esc = 0.6 + rnd() * 0.9;
+    tmpM.compose(tmpV.set(x, 0, z), tmpQ.setFromAxisAngle(EIXO_Y, rnd() * 6.3), tmpS.set(esc, esc * (0.7 + rnd() * 0.8), esc));
+    if (ng < 900) { grama.setMatrixAt(ng, tmpM); grama.setColorAt(ng, cor.setHSL(0.25 + rnd() * 0.08, 0.45 + rnd() * 0.2, 0.28 + rnd() * 0.14)); ng++; }
+    else { flores.setMatrixAt(nf, tmpM); flores.setColorAt(nf, cor.setHex(CF[Math.floor(rnd() * CF.length)])); nf++; }
+  }
+  enfeite(grama); enfeite(flores);
+
+  // nuvens: um grupo só girando devagar lá em cima
+  const nuvens = new THREE.Group(), mNuvem = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xb8a8a0 }), geoNuvem = new THREE.IcosahedronGeometry(1.7, 1);
+  for (let i = 0; i < 9; i++) {
+    const n = new THREE.Group(), a = i / 9 * Math.PI * 2 + rnd(), r = 45 + rnd() * 30;
+    for (let j = 0; j < 4; j++) {
+      const b = new THREE.Mesh(geoNuvem, mNuvem);
+      b.position.set((j - 1.5) * 2.4 + rnd(), rnd() * 0.8, rnd() * 1.6);
+      b.scale.set(1.6 + rnd(), 0.8 + rnd() * 0.4, 1.3 + rnd() * 0.5);
+      n.add(b);
+    }
+    n.position.set(Math.cos(a) * r, 30 + rnd() * 10, Math.sin(a) * r); n.rotation.y = -a;
+    n.scale.setScalar(1.2 + rnd() * 0.8);
+    nuvens.add(n);
+  }
+  nuvens.userData.mexe = true;
+  V.nuvens = enfeite(nuvens);
+
+  // pássaros: bando voando em círculo em cima da praça
+  const mAsa = M(0x1f2937);
+  V.passaros = [];
+  for (let i = 0; i < 6; i++) {
+    const p = new THREE.Group(), ae = new THREE.Group(), ad = new THREE.Group();
+    ae.add(cx(0.35, 0.02, 0.14, mAsa, -0.17, 0, 0)); ad.add(cx(0.35, 0.02, 0.14, mAsa, 0.17, 0, 0));
+    p.add(cx(0.1, 0.08, 0.3, mAsa, 0, 0, 0), ae, ad);
+    p.userData = { mexe: true, ae, ad, r: 13 + rnd() * 8, h: 13 + rnd() * 6, v: 0.25 + rnd() * 0.12, f: rnd() * 6 };
+    V.passaros.push(enfeite(p));
+  }
+
+  // borboletas em volta dos canteiros
+  V.borboletas = [];
+  for (let i = 0; i < 7; i++) {
+    const b = new THREE.Group(), m = new THREE.MeshLambertMaterial({ color: CF[i % CF.length], side: THREE.DoubleSide });
+    const geoA = new THREE.PlaneGeometry(0.16, 0.13).rotateX(-Math.PI / 2);
+    const ae = new THREE.Mesh(geoA.clone().translate(-0.08, 0, 0), m), ad = new THREE.Mesh(geoA.clone().translate(0.08, 0, 0), m);
+    b.add(ae, ad, cx(0.02, 0.02, 0.12, M(0x111111), 0, 0, 0));
+    const [cxn, czn] = [[-4, -14], [4, -14], [-14, 16], [14, 16], [-7, 4], [7, -4], [0, 12]][i];
+    b.userData = { mexe: true, ae, ad, cx: cxn, cz: czn, f: rnd() * 10 };
+    V.borboletas.push(enfeite(b));
+  }
+
+  // o gato: anda em volta da praça e às vezes senta. O caminho sai do relógio de verdade,
+  // então todo mundo na sala vê o gato no mesmo lugar sem mandar nada pela rede.
+  const gato = new THREE.Group(), mG = M(0xe0904a), mG2 = M(0xf5e1c8);
+  const corpo = cx(0.24, 0.2, 0.55, mG, 0, 0.32, 0);
+  const cabeca = new THREE.Group();
+  cabeca.add(cx(0.22, 0.2, 0.2, mG, 0, 0, 0), cx(0.12, 0.08, 0.04, mG2, 0, -0.04, -0.11));
+  for (const s of [-1, 1]) {
+    const orelha = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.1, 4), mG);
+    orelha.position.set(s * 0.07, 0.14, 0); cabeca.add(orelha);
+    cabeca.add(cx(0.035, 0.035, 0.01, M(0x14532d), s * 0.055, 0.03, -0.101));     // olhos
+  }
+  cabeca.position.set(0, 0.48, -0.32);
+  const rabo = new THREE.Group();
+  rabo.add(cx(0.05, 0.05, 0.4, mG, 0, 0, 0.2));
+  rabo.position.set(0, 0.4, 0.27); rabo.rotation.x = -0.7;
+  const patas = [[-0.08, -0.2], [0.08, -0.2], [-0.08, 0.2], [0.08, 0.2]].map(([x, z]) => {
+    const p = new THREE.Group(); p.add(cx(0.06, 0.24, 0.06, mG2, 0, -0.12, 0)); p.position.set(x, 0.24, z); gato.add(p); return p;
+  });
+  gato.add(corpo, cabeca, rabo);
+  gato.userData = { mexe: true, corpo, cabeca, rabo, patas };
+  V.gato = enfeite(gato);
+
+  // ventilador de teto na sala de TV
+  const vent = new THREE.Group();
+  vent.add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.15, 8), M(0x52525b)));
+  for (let i = 0; i < 4; i++) { const pa = cx(0.9, 0.02, 0.18, M(0x7c5a3a), 0.5, -0.05, 0); const g = new THREE.Group(); g.rotation.y = i * Math.PI / 2; g.add(pa); vent.add(g); }
+  vent.position.set(-8.5, 3.2, -23.5);
+  vent.userData.mexe = true;
+  V.vent = enfeite(vent);
+
+  // TV passando o jornal do Fonterector (o canvas redesenha 6x por segundo, só com alguém perto)
+  V.tv = texCanvas(256, 128, () => {});
+  quadro2D(2.4, 1.2, V.tv, -8.5, 1.3, -20.52, Math.PI);
+  V.tTv = 0;
+
+  // pôsteres
+  quadro2D(1.1, 1.46, poster([['FONTERECTOR', 34, 46], ['THE GAME', 22, 84], ['◉ ◉', 70, 170, '#facc15'], ['▬▬', 40, 230, '#facc15'], ['BASEADO EM FATOS', 16, 290], ['QUE AINDA VÃO ACONTECER', 13, 312]], ['#7f1d1d', '#1c0606'], '#fecaca', '#d4a017'), -8.5, 2.35, -27.78);
+  quadro2D(0.9, 1.2, poster([['É', 90, 90], ['NOIS', 80, 180], ['tamo junto', 24, 270, '#111']], ['#fde047', '#f97316'], '#7c2d12', '#111'), -3, 2.2, -27.78);
+  quadro2D(0.9, 1.2, poster([['SINUCA', 40, 70], ['🎱', 90, 170], ['sem tacada', 24, 255], ['sem glória', 24, 285]], ['#14532d', '#052e16'], '#dcfce7', '#5b3a1a'), 3, 2.2, -27.78);
+  quadro2D(0.9, 1.2, poster([['?', 150, 130, '#a78bfa'], ['O SEGREDO', 26, 240], ['MORA NO CÓDIGO', 20, 272], ['(4 dígitos)', 18, 305, '#a1a1aa']], ['#1e1b4b', '#020617'], '#e0e7ff', '#312e81'), 8.2, 2.2, -27.78);
+  quadro2D(1.6, 0.9, texCanvas(256, 144, (g) => {              // quadro de paisagem na parede lateral
+    const gr = g.createLinearGradient(0, 0, 0, 144); gr.addColorStop(0, '#fb923c'); gr.addColorStop(0.55, '#fde68a'); gr.addColorStop(0.56, '#166534'); gr.addColorStop(1, '#052e16');
+    g.fillStyle = gr; g.fillRect(0, 0, 256, 144);
+    g.fillStyle = '#fff7ed'; g.beginPath(); g.arc(180, 70, 22, 0, 7); g.fill();
+    g.strokeStyle = '#5b3a1a'; g.lineWidth = 10; g.strokeRect(0, 0, 256, 144);
+  }), -11.78, 2, -22, Math.PI / 2);
+
+  // plantas nos cantos, livros na estante, cozinha, tapete e luminária da sala de jogos
+  for (const [x, z, e] of [[-11.3, -27.2, 1], [4.3, -27.2, 0.8], [-0.9, -16.7, 0.7], [1.6, -16.7, 0.7], [6, -27.2, 0.8]]) {
+    enfeite(new THREE.Mesh(new THREE.CylinderGeometry(0.22 * e, 0.16 * e, 0.4 * e, 8), M(0x9a3412))).position.set(x, 0.2 * e, z);
+    for (let i = 0; i < 3; i++) enfeite(new THREE.Mesh(geoCopa2, M(i ? 0x15803d : 0x22c55e))).position.set(x + (i - 1) * 0.12 * e, (0.6 + i * 0.25) * e, z);
+    grupoMapa.children.slice(-3).forEach(f => f.scale.setScalar(0.28 * e));
+  }
+  for (let prat = 0; prat < 4; prat++) for (let i = 0; i < 7; i++)
+    enfeite(cx(0.08, 0.3 + (i * 7 % 5) * 0.03, 0.17, M(CF[(i + prat) % CF.length]), 11.17, 0.35 + prat * 0.5, -22.1 + i * 0.27));
+  caixa(-11.35, -16.95, 0.9, 0.8, 2, 0xe5e7eb);                                   // geladeira
+  enfeite(cx(0.04, 0.5, 0.05, M(0x9ca3af), -10.88, 1.3, -17.2));
+  caixa(-9.55, -16.65, 2.4, 0.7, 0.92, 0x78716c);                                // balcão com pia
+  enfeite(cx(2.45, 0.05, 0.75, M(0xd6d3d1), -9.55, 0.94, -16.65));
+  enfeite(cx(0.6, 0.02, 0.4, M(0x71717a), -9.2, 0.97, -16.65));
+  enfeite(new THREE.Mesh(new THREE.PlaneGeometry(4.4, 3.2), M(0x7c2d12))).rotation.x = -Math.PI / 2;
+  grupoMapa.children[grupoMapa.children.length - 1].position.set(MESA.x, 0.025, MESA.z);
+
+  // computador do quarto: mesa, monitor com código, teclado, gabinete com LED e cadeira
+  const P = SH.pc;
+  caixa(P.x, -16.9, 1.7, 0.7, 0.75, 0x3f3f46);
+  enfeite(cx(0.08, 0.3, 0.08, M(0x18181b), P.x, 0.9, -16.75));
+  enfeite(cx(1.0, 0.6, 0.05, M(0x18181b), P.x, 1.25, -16.74));
+  V.telaPC = quadro2D(0.92, 0.52, texCanvas(256, 144, desenharTelaPC), P.x, 1.25, -16.77, Math.PI);
+  enfeite(cx(0.6, 0.03, 0.2, M(0x27272a), P.x, 0.77, -17.05));
+  enfeite(cx(0.12, 0.03, 0.18, M(0x27272a), P.x + 0.45, 0.77, -17.05));
+  enfeite(cx(0.24, 0.5, 0.45, M(0x111827), P.x - 0.65, 1.0, -16.85));
+  V.led = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+  enfeite(cx(0.02, 0.4, 0.02, V.led, P.x - 0.52, 1.0, -17.08));
+  enfeite(cx(0.55, 0.08, 0.55, M(0x1f2937), P.x, 0.48, -17.75)); enfeite(cx(0.55, 0.7, 0.08, M(0x1f2937), P.x, 0.85, -18.03));
+  V.somFonte = null;
+}
+
+function desenharTelaPC(g, w, h) {   // o monitor de longe: um VS Code escuro com código colorido
+  g.fillStyle = '#1e1e1e'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#333'; g.fillRect(0, 0, 14, h);
+  g.fillStyle = '#252526'; g.fillRect(14, 0, 46, h);
+  g.fillStyle = '#007acc'; g.fillRect(0, h - 8, w, 8);
+  const cores = ['#569cd6', '#ce9178', '#dcdcaa', '#6a9955', '#c586c0', '#9cdcfe'];
+  for (let i = 0; i < 12; i++) {
+    let x = 70 + (i % 3) * 8;
+    for (let j = 0; j < 4; j++) { const l = 8 + ((i * 7 + j * 13) % 30); g.fillStyle = cores[(i + j) % cores.length]; g.fillRect(x, 8 + i * 10, l, 4); x += l + 5; }
+  }
+}
+function desenharTV() {
+  const t = casaViva.tv, g = t.userData.c.getContext('2d');
+  const MANCHETES = ['URGENTE: Victor Gomes visto cortando o vento com a katana', 'Felipe Smite Lime nega ter causado a tempestade de ontem',
+    'Bolsa do Fonterector hoje: STONKS', 'Cientistas confirmam: sinuca é esporte olímpico', 'Zumbis pedem trégua no fim de semana',
+    'Previsão do tempo: 100% de chance de bala', 'Boato: alguém achou um segredo no PC do quarto...', 'Gato da praça é eleito prefeito'];
+  const n = Math.floor(T / 9) % MANCHETES.length;
+  g.fillStyle = '#0b1e3f'; g.fillRect(0, 0, 256, 128);
+  g.fillStyle = '#1d4ed8'; g.fillRect(0, 0, 256, 26);
+  g.fillStyle = '#fff'; g.font = '900 15px system-ui,sans-serif'; g.textBaseline = 'middle'; g.fillText('FONTERECTOR NEWS', 8, 13);
+  g.fillStyle = Math.floor(T * 2) % 2 ? '#ef4444' : '#7f1d1d'; g.fillRect(200, 6, 48, 14);
+  g.fillStyle = '#fff'; g.font = '800 10px system-ui,sans-serif'; g.fillText('AO VIVO', 205, 13);
+  for (let i = 0; i < 8; i++) {                             // gráfico de "ações" subindo
+    const v = 0.5 + 0.4 * Math.sin(T * 0.8 + i * 0.9);
+    g.fillStyle = i % 2 ? '#4ade80' : '#22c55e'; g.fillRect(14 + i * 14, 92 - v * 50, 10, v * 50);
+  }
+  g.fillStyle = '#facc15'; g.font = '900 20px system-ui,sans-serif'; g.fillText('📈 STONKS', 136, 62);
+  g.fillStyle = '#b91c1c'; g.fillRect(0, 100, 256, 28);
+  g.fillStyle = '#fff'; g.font = '700 13px system-ui,sans-serif';
+  const txt = MANCHETES[n] + '   ✦   ', larg = g.measureText(txt).width, x = 256 - ((T * 60) % (larg + 256));
+  g.fillText(txt, x, 114);
+  t.needsUpdate = true;
+}
+
+let tPiu = 0;
+function atualizarVida(dt) {
+  const V = casaViva, tg = Date.now() / 1000;
+  for (const c of V.copas) { c.rotation.z = Math.sin(T * 1.1 + c.position.x) * 0.035; c.rotation.x = Math.sin(T * 0.8 + c.position.z) * 0.025; }
+  V.nuvens.rotation.y += dt * 0.004;
+  for (const p of V.passaros) {
+    const u = p.userData, a = T * u.v + u.f;
+    p.position.set(Math.cos(a) * u.r, u.h + Math.sin(T * 0.7 + u.f) * 1.2, Math.sin(a) * u.r);
+    p.rotation.y = -a;                                      // voa na tangente do círculo
+    const bate = Math.sin(T * 11 + u.f) * 0.7;
+    u.ae.rotation.z = bate; u.ad.rotation.z = -bate;
+  }
+  for (const b of V.borboletas) {
+    const u = b.userData, t = T + u.f;
+    const x = u.cx + Math.sin(t * 0.6) * 1.8 + Math.sin(t * 1.7) * 0.4, z = u.cz + Math.cos(t * 0.45) * 1.4;
+    b.rotation.y = Math.atan2(x - b.position.x, z - b.position.z) + Math.PI;
+    b.position.set(x, 0.7 + Math.sin(t * 2.3) * 0.25, z);
+    const bate = Math.sin(t * 22) * 1.1;
+    u.ae.rotation.z = -bate; u.ad.rotation.z = bate;
+  }
+  // gato: 30 s de ciclo, 22 andando e 8 sentado
+  const G = V.gato, gu = G.userData, ciclo = tg % 30, andando = ciclo < 22, tA = Math.floor(tg / 30) * 22 + Math.min(ciclo, 22);
+  const ang = tA * 0.085, r = 12.6 + Math.sin(tA * 0.21) * 1.3;
+  G.position.set(Math.sin(ang) * r, 0, Math.cos(ang) * r);
+  G.rotation.y = ang + Math.PI / 2 + Math.PI;
+  gu.patas.forEach((p, i) => p.rotation.x = andando ? Math.sin(T * 9 + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI : 0)) * 0.6 : 0);
+  gu.corpo.rotation.x = andando ? 0 : -0.35; gu.corpo.position.y = andando ? 0.32 : 0.25;
+  gu.rabo.rotation.y = Math.sin(T * (andando ? 3 : 1.4)) * 0.5;
+  gu.cabeca.rotation.y = andando ? Math.sin(T * 0.9) * 0.2 : Math.sin(T * 0.5) * 0.6;
+  V.vent.rotation.y += dt * 3.2;
+  V.led.color.setHSL((T * 0.15) % 1, 1, 0.55);           // LED RGB do gabinete, é claro
+  if (T > V.tTv && Math.hypot(pos.x + 8.5, pos.z + 22) < 20) { V.tTv = T + 1 / 6; desenharTV(); }
+  // chafariz: gotas sobem da bacia, abrem em leque e caem
+  const F = V.fonte;
+  if (F && !F.parado) {
+    F.gotas.forEach((g, i) => {
+      g.t += dt;
+      if (g.t < 0) return;
+      if (g.y < 0.72 && g.vy < 0) {
+        const a = Math.random() * Math.PI * 2, f = 0.7 + Math.random() * 0.5;
+        Object.assign(g, { x: 0, y: 2.7, z: 0, vx: Math.cos(a) * f, vz: Math.sin(a) * f, vy: 2.6 + Math.random() * 1.2 });
+      }
+      g.vy -= 9 * dt; g.x += g.vx * dt; g.y += g.vy * dt; g.z += g.vz * dt;
+      F.ps[i * 3] = g.x; F.ps[i * 3 + 1] = g.y; F.ps[i * 3 + 2] = g.z;
+    });
+    F.geo.attributes.position.needsUpdate = true;
+  }
+  if (V.ovo && !cutscene) {                                  // o ovo gira devagar e solta brilhinhos
+    V.ovo.egg.rotation.y += dt * 0.4;
+    V.ovo.egg.position.y = 2.05 + Math.sin(T * 1.3) * 0.08;
+    if (Math.random() < dt * 3) brilhinho(tmpV.set((Math.random() - 0.5) * 3.4, 0.5 + Math.random() * 3.5, (Math.random() - 0.5) * 3.4));
+  }
+  // som ambiente: chafariz (ruído filtrado que sobe quando você chega perto) e passarinhos de vez em quando
+  if (ac && somOk) {
+    if (!V.somFonte) {
+      const n = ac.sampleRate * 2, buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = buf; src.loop = true; f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.6; g.gain.value = 0;
+      src.connect(f).connect(g).connect(ac.destination); src.start();
+      V.somFonte = g;
+    }
+    const alvo = F && !F.parado && !fora ? Math.max(0, 1 - Math.hypot(pos.x, pos.z) / 16) * 0.05 : 0;
+    V.somFonte.gain.value += (alvo - V.somFonte.gain.value) * Math.min(1, dt * 3);
+    if (T > tPiu && !fora) {
+      tPiu = T + 3 + Math.random() * 6;
+      const f = 2200 + Math.random() * 1500;
+      for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) setTimeout(() => som(f, 0.07, 0.025, 'sine'), i * 110);
+    }
+  }
+}
+function silenciarVida() { if (casaViva.somFonte) casaViva.somFonte.gain.value = 0; }
+function brilhinho(p) {
+  const s = new THREE.Sprite(brilho(Math.random() < 0.5 ? 0xffe27a : 0xf9a8d4));
+  s.position.copy(p);
+  efeito(s, 0.9, (k, dt) => { s.scale.setScalar(0.35 * Math.sin(Math.PI * k)); s.position.y += 0.5 * dt; });
+}
+function carinho() {              // E perto do gato
+  const g = casaViva.gato;
+  som(780, 0.18, 0.08, 'triangle'); setTimeout(() => som(1050, 0.28, 0.07, 'triangle'), 150);   // miau
+  aviso(['Miau!', 'Purrrr…', 'O gato aprovou', 'Miau (ele quer sachê)'][Math.floor(Math.random() * 4)], 1500);
+  for (let i = 0; i < 4; i++) setTimeout(() => {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texCoracao, transparent: true, depthWrite: false }));
+    s.position.copy(g.position).add(tmpV.set((Math.random() - 0.5) * 0.4, 0.8, (Math.random() - 0.5) * 0.4));
+    efeito(s, 1.4, (k, dt) => { s.position.y += 0.6 * dt; s.scale.setScalar(0.25 * Math.min(1, k * 5)); s.material.opacity = 1 - k * k; });
+  }, i * 180);
+}
+const texCoracao = texCanvas(64, 64, g => {
+  g.fillStyle = '#f43f5e'; g.beginPath(); g.moveTo(32, 56);
+  g.bezierCurveTo(4, 36, 4, 10, 22, 10); g.bezierCurveTo(30, 10, 32, 18, 32, 20); g.bezierCurveTo(32, 18, 34, 10, 42, 10);
+  g.bezierCurveTo(60, 10, 60, 36, 32, 56); g.fill();
+});
+
+// ───────── Fonterector Code: o PC do quarto (mini VS Code com Python, Lua e Java) ─────────
+// Python roda no Skulpt e Lua no Fengari (os dois baixados do CDN só na primeira vez que roda).
+// Java é traduzido pra JavaScript na hora: dá conta de print, variáveis, laços, arrays e métodos
+// estáticos, que é o que um meme precisa. O código roda num Worker separado: loop infinito
+// não trava o jogo, só leva timeout.
+const LIBS_PC = {
+  python: ['https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js', 'https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js'],
+  lua: ['https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js'],
+  java: [],
+};
+const LINGS = { py: ['python', 'Python', 'python3 meme.py'], lua: ['lua', 'Lua', 'lua meme.lua'], java: ['java', 'Java', 'javac Meme.java && java Meme'] };
+const ARQUIVOS_PADRAO = {
+  'meme.py': `# meme.py: aperte Ctrl+Enter (ou o botão ▶) pra rodar
+import random
+
+memes = ["É NOIS", "Victor Gomes passou aqui", "Fonterector > todos",
+         "bateu a larica", "Felipe Smite Lime mandou um raio"]
+
+for i in range(5):
+    print(str(i + 1) + ". " + random.choice(memes))
+
+def stonks():
+    return "📈 STONKS" if random.random() > 0.5 else "📉 not stonks"
+
+print(stonks())
+# dica: o cadeado ali do lado esconde alguma coisa...
+`,
+  'meme.lua': `-- meme.lua
+local frases = {"sus", "Fonterector é top", "bora jogar sinuca", "5 + 6 = 11 (confia)"}
+
+for i, f in ipairs(frases) do
+  print(i .. " -> " .. f)
+end
+
+local function fatorial(n)
+  if n <= 1 then return 1 end
+  return n * fatorial(n - 1)
+end
+
+print("fatorial de 10 = " .. fatorial(10))
+print(string.rep("ha", 5) .. "!")
+`,
+  'Meme.java': `public class Meme {
+    // Java: 10 linhas pra dar um print. É a tradição.
+    public static void main(String[] args) {
+        String[] memes = {"Hello World mas é o Fonterector", "NullPointerException é meu nome do meio", "compila na minha máquina"};
+        for (int i = 0; i < memes.length; i++) {
+            System.out.println((i + 1) + ". " + memes[i]);
+        }
+        int soma = 0;
+        for (int i = 1; i <= 100; i++) soma += i;
+        System.out.println("soma de 1 a 100 = " + soma);
+        System.out.println(gritar("e nois"));
+    }
+
+    static String gritar(String s) {
+        return s.toUpperCase() + "!!!";
+    }
+}
+`,
+};
+const ERROS_MEME = ['funciona na minha máquina ¯\\_(ツ)_/¯', 'o estagiário mexeu aqui', 'já tentou desligar e ligar de novo?',
+  'isso não é um bug, é uma feature', 'Stack Overflow tá fora do ar, se vira', 'o Fonterector viu isso e ficou triste'];
+const SINTAXE = {
+  python: { kw: 'and|as|assert|break|class|continue|def|del|elif|else|except|False|finally|for|from|global|if|import|in|is|lambda|None|nonlocal|not|or|pass|raise|return|True|try|while|with|yield', com: '#.*' },
+  lua: { kw: 'and|break|do|else|elseif|end|false|for|function|goto|if|in|local|nil|not|or|repeat|return|then|true|until|while', com: '--.*' },
+  java: { kw: 'abstract|boolean|break|case|catch|char|class|continue|default|do|double|else|extends|final|finally|float|for|if|implements|import|int|interface|long|new|null|package|private|protected|public|return|short|static|String|super|switch|this|throw|throws|try|void|while|true|false|var', com: '//.*' },
+};
+const STR_RE = /"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/.source;
+const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function colorir(codigo, ling) {
+  const S = SINTAXE[ling], re = new RegExp('(' + S.com + ')|(' + STR_RE + ')|\\b(\\d+(?:\\.\\d+)?)\\b|\\b(' + S.kw + ')\\b|\\b([A-Za-z_]\\w*)(?=\\s*\\()', 'g');
+  let out = '', i = 0, m;
+  while ((m = re.exec(codigo))) {
+    out += esc(codigo.slice(i, m.index));
+    out += '<span class="t' + (m[1] ? 'c' : m[2] ? 's' : m[3] ? 'n' : m[4] ? 'k' : 'f') + '">' + esc(m[0]) + '</span>';
+    i = re.lastIndex;
+  }
+  return out + esc(codigo.slice(i)) + '\n';
+}
+
+// Isso vira o código do Worker (via toString). Não usa nada de fora da função.
+function trabalhadorPC() {
+  const sai = t => postMessage({ o: String(t) });
+  onmessage = ev => {
+    const { ling, codigo, libs } = ev.data;
+    const fim = erro => postMessage({ fim: true, erro: erro ? String(erro && erro.message ? erro.message : erro) : '' });
+    self.window = self;                                    // o pacote do Fengari espera um "window"; no Worker, ele é o self
+    try { if (libs.length) importScripts(...libs); }
+    catch (e) { fim('não deu pra carregar o interpretador de ' + ling + ' (tá sem internet?) · ' + e.message); return; }
+    try {
+      if (ling === 'python') {
+        Sk.configure({ output: sai, __future__: Sk.python3,
+          read: f => { if (Sk.builtinFiles && Sk.builtinFiles.files[f] !== undefined) return Sk.builtinFiles.files[f]; throw new Error('arquivo não existe: ' + f); } });
+        Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, codigo, true)).then(() => fim(), e => fim(e.toString()));
+      } else if (ling === 'lua') {
+        const F = self.fengari, { lua, lauxlib, lualib } = F, L = lauxlib.luaL_newstate();
+        lualib.luaL_openlibs(L);
+        lua.lua_pushjsfunction(L, L => {
+          const n = lua.lua_gettop(L), p = [];
+          for (let i = 1; i <= n; i++) { p.push(F.to_jsstring(lauxlib.luaL_tolstring(L, i))); lua.lua_pop(L, 1); }
+          sai(p.join('\t') + '\n');
+          return 0;
+        });
+        lua.lua_setglobal(L, F.to_luastring('print'));
+        let st = lauxlib.luaL_loadstring(L, F.to_luastring(codigo));
+        if (st === lua.LUA_OK) st = lua.lua_pcall(L, 0, 0, 0);
+        fim(st === lua.LUA_OK ? '' : lua.lua_tojsstring(L, -1));
+      } else {
+        const fmt = x => typeof x === 'number' && !Number.isInteger(x) ? String(+x.toFixed(10)) : x === null ? 'null' : Array.isArray(x) ? '[' + x.join(', ') + ']' : String(x);
+        const println = (x = '') => sai(fmt(x) + '\n'), print = x => sai(fmt(x));
+        const printf = (f, ...a) => sai(String(f).replace(/%(\.\d+)?([dsfn%])/g, (m, p, t) => t === 'n' ? '\n' : t === '%' ? '%' : t === 'f' ? Number(a.shift()).toFixed(p ? +p.slice(1) : 6) : fmt(a.shift())));
+        new Function('__println', '__print', '__printf', javaParaJs(codigo))(println, print, printf);
+        fim();
+      }
+    } catch (e) { fim(ling === 'java' ? 'Exception in thread "main" java.lang.MemeException: ' + (e && e.message ? e.message : e) : e); }
+  };
+  function javaParaJs(src) {
+    const PALAVRAS = /^(if|for|while|switch|catch|synchronized|return|new|else)$/;
+    let s = src.replace(/^\s*(import|package)\s+[^;]+;/gm, '')
+      .replace(/System\.out\.println/g, '__println').replace(/System\.out\.printf/g, '__printf').replace(/System\.out\.print/g, '__print')
+      .replace(/@\w+/g, '').replace(/\b(public|private|protected)\s+/g, '');
+    s = s.replace(/^\s*(final\s+)?class\s+\w+[^{]*\{/m, '').replace(/\}\s*$/, '');
+    s = s.replace(/(^|[;{}\n])(\s*)(?:static\s+)?(?:final\s+)?[\w<>\[\],]+(?:\s*\[\])*\s+(\w+)\s*\(([^()]*)\)\s*(?:throws\s+[\w,\s]+)?\{/g, (m, a, b, nome, ps) =>
+      PALAVRAS.test(nome) ? m : a + b + 'function ' + nome + '(' + ps.split(',').map(p => p.trim().split(/\s+/).pop()).filter(Boolean).join(', ') + ') {');
+    s = s.replace(/new\s+(int|long|double|float|short|byte)\s*\[([^\]]+)\]/g, 'new Array($2).fill(0)')
+      .replace(/new\s+boolean\s*\[([^\]]+)\]/g, 'new Array($1).fill(false)')
+      .replace(/new\s+\w+\s*\[([^\]]+)\]/g, 'new Array($1).fill(null)')
+      .replace(/new\s+\w+(?:<[^>]*>)?\s*\[\s*\]\s*\{/g, '{')
+      .replace(/new\s+(ArrayList|LinkedList|Vector)\s*<[^>]*>\s*\(\s*\)/g, '[]')
+      .replace(/=\s*\{([^{}]*)\}/g, '= [$1]')
+      .replace(/\((int|long|short|byte)\)\s*/g, '~~').replace(/\((double|float)\)\s*/g, '+')
+      .replace(/\b(?:final\s+)?(?:int|long|short|byte|double|float|boolean|char|String|var|Integer|Double|Object|(?:Array)?List<[^>]*>)(?:\s*\[\])*\s+(?=[A-Za-z_]\w*\s*(?:=|;|,|:|\)))/g, 'let ')
+      .replace(/for\s*\(\s*let\s+(\w+)\s*:/g, 'for (let $1 of')
+      .replace(/\.length\(\)/g, '.length').replace(/\.size\(\)/g, '.length').replace(/\.add\(/g, '.push(').replace(/\.get\(([^()]*)\)/g, '[$1]')
+      .replace(/([\w\]\)"]+)\.equals\(([^()]*)\)/g, '($1 === $2)')
+      .replace(/Integer\.parseInt/g, 'parseInt').replace(/Double\.parseDouble/g, 'parseFloat').replace(/String\.valueOf/g, 'String')
+      .replace(/Integer\.MAX_VALUE/g, '2147483647').replace(/Integer\.MIN_VALUE/g, '-2147483648');
+    return s + '\nif (typeof main === "function") main([]);';
+  }
+}
+
+const pc = { atual: 'meme.py', arquivos: null, painel: 'arquivos', trab: null, url: null };
+try { pc.arquivos = JSON.parse(localStorage.getItem('fonterector-pc') || 'null'); } catch (e) {}
+if (!pc.arquivos || typeof pc.arquivos !== 'object') pc.arquivos = {};
+for (const k in ARQUIVOS_PADRAO) if (typeof pc.arquivos[k] !== 'string') pc.arquivos[k] = ARQUIVOS_PADRAO[k];
+const lingDe = nome => LINGS[nome.split('.').pop().toLowerCase()] || LINGS.py;
+function salvarPC() { try { localStorage.setItem('fonterector-pc', JSON.stringify(pc.arquivos)); } catch (e) {} }
+function abrirPC() {
+  pos.set(SH.pc.x, 0, -17.9); yaw = Math.PI; pitch = -0.25;
+  for (const k in teclas) teclas[k] = false;
+  $('pc').hidden = false;
+  if (document.pointerLockElement) document.exitPointerLock();
+  desenharPC();
+  setTimeout(() => $('pcCodigo').focus(), 50);
+}
+function fecharPC() {
+  if (atividade === 'pc') sairAtividade();
+}
+function desenharPC() {
+  $('pcArquivos').innerHTML = Object.keys(pc.arquivos).map(n => '<button data-arq="' + n + '" class="' + (n === pc.atual ? 'sel' : '') + '"><i class="ic-' + lingDe(n)[0] + '"></i>' + n + '</button>').join('');
+  $('pcAbas').innerHTML = Object.keys(pc.arquivos).map(n => '<button data-arq="' + n + '" class="' + (n === pc.atual ? 'sel' : '') + '"><i class="ic-' + lingDe(n)[0] + '"></i>' + n + '</button>').join('');
+  $('pcTitulo').textContent = pc.atual + ' — Fonterector Code';
+  $('pcLing').textContent = lingDe(pc.atual)[1];
+  const ta = $('pcCodigo');
+  if (ta.value !== pc.arquivos[pc.atual]) ta.value = pc.arquivos[pc.atual];
+  for (const s of document.querySelectorAll('#pcLado section')) s.hidden = s.dataset.painel !== pc.painel;
+  for (const b of document.querySelectorAll('#pc nav button')) b.classList.toggle('sel', b.dataset.p === pc.painel);
+  colorirPC();
+}
+function colorirPC() {
+  const ta = $('pcCodigo'), n = ta.value.split('\n').length;
+  $('pcCor').innerHTML = colorir(ta.value, lingDe(pc.atual)[0]);
+  if (pc.nLinhas !== n) { pc.nLinhas = n; $('pcLinhas').textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n'); }
+  rolarPC();
+}
+function rolarPC() {
+  const ta = $('pcCodigo');
+  $('pcCor').scrollTop = ta.scrollTop; $('pcCor').scrollLeft = ta.scrollLeft; $('pcLinhas').scrollTop = ta.scrollTop;
+}
+function escreverPC(txt, cls) {
+  const sp = document.createElement('span');
+  if (cls) sp.className = cls;
+  sp.textContent = txt;
+  const s = $('pcSaida');
+  s.append(sp);
+  while (s.childNodes.length > 400) s.firstChild.remove();
+  s.scrollTop = s.scrollHeight;
+}
+function rodarPC() {
+  const [ling, , cmd] = lingDe(pc.atual), codigo = pc.arquivos[pc.atual], t0 = performance.now();
+  escreverPC('\n$ ' + cmd + '\n', 'cmd');
+  if (pc.trab) pc.trab.terminate();
+  pc.url = pc.url || URL.createObjectURL(new Blob(['(' + trabalhadorPC + ')()'], { type: 'text/javascript' }));
+  const w = pc.trab = new Worker(pc.url);
+  if (LIBS_PC[ling].length) escreverPC('(carregando o interpretador…)\n', 'dim');
+  const parar = msg => { clearTimeout(limite); w.terminate(); if (pc.trab === w) pc.trab = null; if (msg) escreverPC(msg, 'erro'); };
+  const limite = setTimeout(() => parar('\n[tempo esgotado em 8 s: loop infinito? clássico]\n'), 8000);
+  w.onmessage = ev => {
+    const d = ev.data;
+    if (d.o !== undefined) escreverPC(d.o);
+    if (!d.fim) return;
+    parar();
+    if (d.erro) escreverPC(d.erro + '\n→ ' + ERROS_MEME[Math.floor(Math.random() * ERROS_MEME.length)] + '\n', 'erro');
+    else escreverPC('[pronto em ' + Math.round(performance.now() - t0) + ' ms]\n', 'ok');
+  };
+  w.onerror = e => { e.preventDefault(); parar('\n' + (e.message || 'erro no worker') + '\n'); };
+  w.postMessage({ ling, codigo, libs: LIBS_PC[ling] });
+}
+function tentarSegredo() {
+  const v = $('pcSenha').value.trim();
+  $('pcSenha').value = '';
+  if (v !== SENHA_ROBO) {
+    $('pcSegMsg').textContent = ['Errou. Tenta de novo.', 'Não é 1234, né.', 'Quase (mentira).', 'O Fonterector riu de você.', 'Dica: o robô sabe.'][Math.floor(Math.random() * 5)];
+    som(160, 0.2, 0.08, 'square');
+    return;
+  }
+  if (ovoAberto) { $('pcSegMsg').textContent = 'O segredo já foi revelado. Olha pela janela.'; return; }
+  liberado = true;
+  try { localStorage.setItem('fonterector-robo', '1'); } catch (e) {}
+  $('pcSegMsg').textContent = 'ACESSO LIBERADO';
+  som(880, 0.15, 0.1, 'square'); setTimeout(() => som(1320, 0.3, 0.1, 'square'), 120);
+  setTimeout(() => { fecharPC(); iniciarOvo(true); mandar({ t: 'ovo' }); }, 700);
+}
+$('pc').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.arq) { pc.atual = b.dataset.arq; desenharPC(); $('pcCodigo').focus(); }
+  if (b.dataset.p) { pc.painel = b.dataset.p; desenharPC(); if (pc.painel === 'segredos') $('pcSenha').focus(); }
+  if (b.id === 'pcRodar') rodarPC();
+  if (b.id === 'pcLimpar') $('pcSaida').textContent = '';
+  if (b.id === 'pcFechar') fecharPC();
+  if (b.id === 'pcAbrir') tentarSegredo();
+  if (b.id === 'pcReset') { pc.arquivos[pc.atual] = ARQUIVOS_PADRAO[pc.atual]; salvarPC(); desenharPC(); }
+});
+$('pcCodigo').addEventListener('input', () => { pc.arquivos[pc.atual] = $('pcCodigo').value; salvarPC(); colorirPC(); });
+$('pcCodigo').addEventListener('scroll', rolarPC);
+$('pc').addEventListener('keydown', e => {
+  e.stopPropagation();                                   // digitar no PC não anda nem atira
+  if (e.code === 'Escape') { fecharPC(); return; }
+  if (e.code === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); rodarPC(); return; }
+  if (e.target.id === 'pcSenha' && e.code === 'Enter') { tentarSegredo(); return; }
+  if (e.target.id === 'pcCodigo' && e.code === 'Tab') {   // Tab = 4 espaços, como manda o figurino
+    e.preventDefault();
+    const ta = e.target, a = ta.selectionStart;
+    ta.setRangeText('    ', a, ta.selectionEnd, 'end');
+    ta.dispatchEvent(new Event('input'));
+  }
+});
+
+// ───────── O segredo: cratera na praça e o ovo de páscoa (com cutscene) ─────────
+const texOvo = texCanvas(512, 256, (g, w, h) => {
+  const faixas = ['#f9a8d4', '#a7f3d0', '#c4b5fd', '#fde68a', '#93c5fd', '#fbcfe8', '#a7f3d0'];
+  faixas.forEach((c, i) => { g.fillStyle = c; g.fillRect(0, i * h / faixas.length, w, h / faixas.length + 1); });
+  g.strokeStyle = '#fff'; g.lineWidth = 6;
+  for (const y of [h * 2 / 7, h * 5 / 7]) {        // zigue-zague
+    g.beginPath();
+    for (let x = 0; x <= w; x += 16) g.lineTo(x, y + (x / 16 % 2 ? -9 : 9));
+    g.stroke();
+  }
+  for (let i = 0; i < 40; i++) { g.fillStyle = ['#f472b6', '#facc15', '#60a5fa', '#fff'][i % 4]; g.beginPath(); g.arc((i * 53) % w, (i % 2 ? h * 0.42 : h * 0.86) + (i % 3) * 6, 6, 0, 7); g.fill(); }
+  g.fillStyle = '#b45309'; g.font = '900 40px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('5656', w * 0.25, h / 2); g.fillText('5656', w * 0.75, h / 2);
+});
+const texCratera = texCanvas(256, 256, g => {
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, '#050302'); gr.addColorStop(0.45, '#140b05'); gr.addColorStop(0.72, '#3b2412'); gr.addColorStop(0.9, 'rgba(90,60,35,0.8)'); gr.addColorStop(1, 'rgba(90,60,35,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+});
+function montarOvo(pronto) {
+  const V = casaViva, o0 = grupoMapa.children.length;
+  const cratera = enfeite(new THREE.Mesh(new THREE.CircleGeometry(5.2, 36), new THREE.MeshBasicMaterial({ map: texCratera, transparent: true, depthWrite: false })));
+  cratera.rotation.x = -Math.PI / 2; cratera.position.y = 0.03; cratera.renderOrder = 1;
+  const pedras = [];
+  for (let i = 0; i < 20; i++) {
+    const a = i / 20 * Math.PI * 2, r = 4.5 + Math.sin(i * 7) * 0.4, t = 0.35 + (i * 37 % 10) / 20;
+    const p = enfeite(new THREE.Mesh(geoCopa2, M(i % 3 ? 0x6b5a48 : 0x8a7560)));
+    p.scale.set(t, t * 0.7, t); p.rotation.set(i, i * 2, 0);
+    p.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); p.userData.y1 = t * 0.3;
+    pedras.push(p);
+  }
+  const egg = enfeite(new THREE.Mesh(new THREE.SphereGeometry(1.6, 32, 22), new THREE.MeshLambertMaterial({ map: texOvo, emissive: 0x3a2a10 })));
+  egg.scale.y = 1.3;
+  const fita = new THREE.Mesh(new THREE.TorusGeometry(1.61, 0.07, 6, 40), new THREE.MeshLambertMaterial({ color: 0xd4a017, emissive: 0x4a3000 }));
+  fita.rotation.x = Math.PI / 2;
+  egg.add(fita);
+  const luz = enfeite(new THREE.PointLight(0xffd27a, 0, 13));
+  luz.position.set(0, 3.5, 0);
+  const facho = enfeite(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 2.6, 40, 20, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })));
+  facho.position.y = 20;
+  grupoMapa.children.slice(o0).forEach(o => o.userData.mexe = true);
+  V.ovo = { egg, luz, cratera, pedras, facho };
+  if (pronto) assentarOvo(); else { cratera.scale.setScalar(0.01); pedras.forEach(p => p.position.y = -1); egg.position.y = -5.5; }
+}
+function assentarOvo() {          // estado final: ovo no lugar, colisão e alvo de tiro
+  const O = casaViva.ovo;
+  O.cratera.scale.setScalar(1); O.pedras.forEach(p => p.position.y = p.userData.y1);
+  O.egg.position.y = 2.05; O.luz.intensity = 0.5; O.facho.material.opacity = 0;
+  caixas.push({ x0: -1.4, x1: 1.4, y0: 0, y1: 4, z0: -1.4, z1: 1.4 });
+  solidos.push(O.egg);
+}
+function iniciarOvo(comCena) {
+  if (ovoAberto) return;
+  ovoAberto = true;
+  if (mapaAtual !== 'casa') return;                      // quando a casa for montada, já vem com o ovo
+  removerColisaoFonte();
+  if (!comCena || fora || naTitulo) {                    // sem cutscene: troca na hora
+    for (const o of casaViva.fonte ? casaViva.fonte.objs : []) grupoMapa.remove(o);
+    casaViva.fonte = null;
+    montarOvo(true);
+    return;
+  }
+  if (atividade) sairAtividade();
+  emote = 0;
+  montarOvo(false);
+  const rachas = [];
+  for (let i = 0; i < 14; i++) {                         // rachaduras saindo do centro
+    const r = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.16).translate(0.5, 0, 0), new THREE.MeshBasicMaterial({ color: 0x120a05 }));
+    r.rotation.x = -Math.PI / 2; r.rotation.z = i / 14 * Math.PI * 2 + Math.sin(i * 3) * 0.2;
+    r.position.y = 0.036; r.scale.set(0.01, 1, 1); r.userData = { mexe: true, l: 5 + (i * 13 % 7) };
+    rachas.push(enfeite(r));
+  }
+  cutscene = { t: 0, rachas, feito: {}, tPo: 0 };
+  document.body.classList.add('cinema');
+  if (casaViva.fonte) casaViva.fonte.parado = true;
+}
+const suave = k => k <= 0 ? 0 : k >= 1 ? 1 : k * k * (3 - 2 * k);
+function passoCutscene(dt) {
+  const C = cutscene, t = (C.t += dt), V = casaViva, O = V.ovo, F = V.fonte;
+  const uma = (n, quando, f) => { if (t >= quando && !C.feito[n]) { C.feito[n] = 1; f(); } };
+  uma('ronco', 0.2, () => { ruido(3.5, 160, 0.5); som(45, 3, 0.4, 'sine'); });
+  uma('estalo', 1.2, () => { ruido(0.4, 3000, 0.45); ruido(2.5, 200, 0.5); });
+  uma('estalo2', 2.6, () => { ruido(0.3, 2500, 0.4); som(60, 2, 0.4, 'sine'); });
+  uma('subida', 4.3, () => { som(110, 3.2, 0.25, 'sawtooth'); ruido(2, 400, 0.3); });
+  uma('fanfarra', 7.2, () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => setTimeout(() => som(f, i === 5 ? 0.9 : 0.22, 0.12, 'square'), i * 140)));
+  uma('titulo', 7.6, () => aviso('OVO DE PÁSCOA\nO segredo do Fonterector foi revelado', 4200));
+  C.tremor = t < 1 ? t * 0.15 : t < 6.6 ? 0.18 + Math.sin(t * 3) * 0.05 : Math.max(0, 0.18 - (t - 6.6) * 0.15);
+  if (F) for (const o of F.objs) o.position.y = o.userData.y0 - 4 * Math.pow(suave((t - 1.2) / 3), 1.5);   // a fonte afunda
+  for (const r of C.rachas) r.scale.x = Math.max(0.01, suave((t - 0.8) / 1.8) * r.userData.l);
+  O.cratera.scale.setScalar(Math.max(0.01, suave((t - 2) / 1.6)));
+  O.pedras.forEach((p, i) => p.position.y = -1 + (1 + p.userData.y1) * suave((t - 2.4 - i * 0.03) / 1.2));
+  const sobe = suave((t - 4.3) / 3);
+  O.egg.position.y = -5.5 + 7.55 * sobe + (sobe >= 1 ? Math.sin(T * 1.3) * 0.08 : 0);
+  O.egg.rotation.y += dt * (0.4 + 2.2 * (1 - Math.abs(sobe - 0.5) * 2));
+  O.luz.intensity = 1.3 * suave((t - 4) / 1.5) - 0.8 * suave((t - 8.5) / 2);
+  O.facho.material.opacity = 0.35 * suave((t - 3.8) / 1) * (1 - suave((t - 8) / 2.5));
+  if (t > 1.2 && t < 5 && T > C.tPo) {                    // poeira e pedrinhas voando
+    C.tPo = T + 0.07;
+    const a = Math.random() * Math.PI * 2, r = Math.random() * 4.5;
+    poeira(tmpV.set(Math.cos(a) * r, 0.3, Math.sin(a) * r));
+    if (Math.random() < 0.5) cascalho(tmpV);
+  }
+  if (t > 4.5 && Math.random() < dt * 14) brilhinho(tmpV.set((Math.random() - 0.5) * 4, O.egg.position.y + (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4));
+  if (t > 11.2) {                                          // fim: devolve o controle
+    for (const o of F ? F.objs : []) grupoMapa.remove(o);
+    V.fonte = null;
+    for (const r of C.rachas) r.material.color.setHex(0x2a1a0c);
+    assentarOvo();
+    cutscene = null;
+    document.body.classList.remove('cinema');
+    aviso('Classe FONTERECTOR liberada pra quem digitou o código', 2500);
+  }
+}
+function cameraCutscene() {       // três tomadas emendadas: plano aberto → volta em volta → close no ovo
+  const t = cutscene.t, egg = casaViva.ovo.egg.position.y;
+  let x, y, z, ly;
+  if (t < 4.2) { const k = suave(t / 4.2); x = 0; y = 8 - 1.5 * k; z = 22 - 5 * k; ly = 0.5; }
+  else if (t < 8.2) { const k = suave((t - 4.2) / 4), a = k * 1.4, r = 17 - 7 * k; x = Math.sin(a) * r; z = Math.cos(a) * r; y = 6.5 - 3 * k; ly = 0.5 + 1.5 * k; }
+  else { const k = suave((t - 8.2) / 3), a = 1.4 + 0.6 * k, r = 10 - 2.5 * k; x = Math.sin(a) * r; z = Math.cos(a) * r; y = 3.5 - 0.5 * k; ly = 2; }
+  const tr = cutscene.tremor || 0;
+  camera.position.set(x + (Math.random() - 0.5) * tr, y + (Math.random() - 0.5) * tr, z + (Math.random() - 0.5) * tr);
+  camera.lookAt(0, Math.min(ly, Math.max(0.5, egg)), 0);
+  return 55;
+}
+function poeira(p) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChama, color: 0x8a7056, transparent: true, opacity: 0.5, depthWrite: false }));
+  s.position.copy(p);
+  efeito(s, 1.6, (k, dt) => { s.scale.setScalar(0.8 + k * 3); s.material.opacity = 0.5 * (1 - k); s.position.y += 1.2 * dt; });
+}
+function cascalho(p) {
+  const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ color: 0x6b5a48, flatShading: true }));   // geometria própria: o efeito descarta no fim
+  m.scale.setScalar(0.12 + Math.random() * 0.12); m.position.copy(p);
+  const v = new V3((Math.random() - 0.5) * 5, 5 + Math.random() * 5, (Math.random() - 0.5) * 5);
+  efeito(m, 1.3, (k, dt) => { v.y -= 18 * dt; m.position.addScaledVector(v, dt); m.rotation.x += dt * 6; if (m.position.y < 0) m.position.y = 0; });
+}
+
 // ───────── Loop ─────────
 let antes = performance.now(), envio = 0;
 const deslocCam = new V3();
+// Resolução adaptativa: a cada 2 s olha a média dos quadros. Pesou (< ~45 fps), baixa a resolução
+// interna um degrau; sobrou folga (> ~58 fps), sobe de volta até o máximo. O jogo nunca trava pra ficar bonito.
+let somaQ = 0, nQ = 0;
+function resolucaoAdaptativa(ms) {
+  somaQ += ms; nQ++;
+  if (somaQ < 2000) return;
+  const media = somaQ / nQ;
+  somaQ = 0; nQ = 0;
+  const novo = media > 22 ? Math.max(0.6, pr - 0.15) : media < 17.2 ? Math.min(PR_MAX, pr + 0.1) : pr;
+  if (Math.abs(novo - pr) > 0.01) { pr = novo; renderer.setPixelRatio(pr); ajustarTela(); }
+}
 function quadro(agora) {
   requestAnimationFrame(quadro);
+  if (!document.hidden) resolucaoAdaptativa(agora - antes);
   const dt = Math.min(0.05, (agora - antes) / 1000);
   antes = agora;
   T = agora / 1000;
   let luneta = false;
   if (eu) {
     if (!morto && !emFim && !fora) {
-      if (atividade) atualizarAtividade(dt);
+      if (cutscene) { vel.set(0, 0, 0); tChao = T; noChao = true; }      // cutscene: ninguém se mexe
+      else if (atividade) atualizarAtividade(dt);
       else { mover(dt); armas(dt); }
       if (T - tDash > DASH_CD !== dashPronto) { dashPronto = !dashPronto; hud(); }   // atualiza o aviso de dash
       if (vida < vidaMax && T - tDano > 5) {            // vida volta sozinha depois de 5s sem levar tiro
@@ -3300,14 +4191,14 @@ function quadro(agora) {
     eu.g.position.copy(pos);
     eu.g.rotation.y = yaw;
     eu.pitch = pitch; eu.rec = tRec > 0; eu.ag = agachado; eu.em = atividade === 'cama' ? 4 : emote;
-    eu.st = morto ? 4 : atividade ? 0 : !noChao ? 3 : T - tSlide < 0.7 ? 5 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
+    eu.st = morto ? 4 : atividade || cutscene ? 0 : !noChao ? 3 : T - tSlide < 0.7 ? 5 : correndo ? 2 : Math.hypot(vel.x, vel.z) > 0.8 ? 1 : 0;
     if (eu.mod && !fora) animar(eu, T);
     envio -= dt;
     if (envio <= 0) {
       envio = 0.05;
       mandar({ t: 'p', p: arr(pos, 2), r: +yaw.toFixed(2), x: +pitch.toFixed(2), m: fora ? 2 : morto ? 1 : 0, k: abates,
                c: escolha.c, a: armaIdx(), s: eu.st, rc: tRec > 0 ? 1 : 0, g: agachado ? 1 : 0,
-               em: eu.em, md: MODOS.indexOf(modo), on: ondaN, bv: baseVida });
+               em: eu.em, md: MODOS.indexOf(modo), on: ondaN, bv: baseVida, ov: ovoAberto ? 1 : 0 });
       tique++;
       for (const [id, o] of outros)      // zumbis mandam posição 3x mais devagar (são muitos); os caídos, quase nunca
         if (o.bot && (!o.bot.zumbi || (tique % 3 === 0 && (!o.fora || tique % 30 === 0))))
@@ -3377,7 +4268,8 @@ function quadro(agora) {
     }
   }
   vitrine.g.visible = fora && !naTitulo;
-  if (eu && eu.mod) eu.mod.visible = morto || !!emote || atividade === 'cama';       // vivo eu não vejo meu corpo, só a arma (menos em emote)
+  if (cutscene && !naTitulo) fov = cameraCutscene();
+  if (eu && eu.mod) eu.mod.visible = morto || !!emote || atividade === 'cama' || !!cutscene;       // vivo eu não vejo meu corpo, só a arma (menos em emote)
   $('luneta').style.opacity = luneta ? 1 : 0;
   $('mira').classList.toggle('ads', mAds > 0.6 && !luneta);   // mirando: some a bolinha, fica um ponto vermelho em cima da arma
   atualizarTrava();
@@ -3387,7 +4279,7 @@ function quadro(agora) {
   camera.updateProjectionMatrix();
   renderer.clear();
   renderer.render(cena, camera);
-  if (eu && !fora && !morto && !luneta && !emote && (!atividade || atividade === 'dardos')) {         // arma por cima, com a profundidade zerada
+  if (eu && !fora && !morto && !luneta && !emote && !cutscene && (!atividade || atividade === 'dardos')) {         // arma por cima, com a profundidade zerada
     poseVM(dt);
     renderer.clearDepth();
     renderer.render(cenaVM, camVM);

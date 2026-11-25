@@ -8,6 +8,7 @@ Jogo do Gabriel com os amigos. Tudo em português (código, comentários, textos
 - `servidor.py` só repassa mensagens. Toda regra de jogo roda no navegador.
 - Quem decide um acerto é quem atirou; quem leva o tiro aplica o dano. Bots, zumbis e ondas são simulados pelo **host** (menor id da sala).
 - Bots têm id negativo (-1 a -9); zumbis, -10 pra baixo.
+- O PC da Safe House (mini VS Code) baixa Skulpt (Python) e Fengari (Lua) do jsDelivr só quando alguém roda código, dentro de um Worker. Java é traduzido pra JS na hora (`javaParaJs`).
 - Modelos chegam depois da página. Se um não carregar, o jogo cai nas versões de caixa (`criarModeloCaixas`, `animarCaixas`, armas de caixinha), então nada quebra sem os assets.
 
 ## Testar
